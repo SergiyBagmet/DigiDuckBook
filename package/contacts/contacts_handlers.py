@@ -2,7 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-from address_book import AddressBook, Record, Phone, AddressBookEncoder
+from .address_book import AddressBook, Record, Phone, AddressBookEncoder
 
 
 data_path = Path.home() / "data"
