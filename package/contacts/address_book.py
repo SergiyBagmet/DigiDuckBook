@@ -1,18 +1,18 @@
 from collections import UserDict
-import json
+import re, json
 from datetime import date 
 import typing as t
 
 class Field:
     """
-    Class parent representing a field used in the record of the address book.
+    Parent class representing a field used in the record of the address book.
     """
     def __init__(self, value: str) -> None:
         self.value = value 
       
     def __valid_value(self, value) -> None:
         if not isinstance(value, str):
-            raise TypeError(f'Value {value} is not valid. Must be string')
+            raise TypeError(f'Value {value} is not valid. It must be a string')
         
     @property
     def value(self) :
@@ -39,7 +39,7 @@ class Field:
 
 class Name(Field):
     """
-    Class representing the name field in a record of  the address book.
+    Class representing the name field in a record of the address book.
     """
     pass
  
@@ -58,6 +58,36 @@ class Phone(Field):
     def value(self, value: str) -> None:
         Field.value.fset(self, value, self.__valid_phone)
         
+
+class Email(Field):
+    """
+    Class representing the email field in a record of the address book.
+    """
+
+    def __valid_email(self, value: str) -> str:
+        """
+        Validate the correct format of email in the input email string.
+        Valid format of email: (username)@(domainname).(top-leveldomain).
+        Args:
+            value (str): The input email string.
+        Raises:
+            ValueError: If the input email string is not in a valid format.
+        Returns:
+            str: The valid email string.
+        """
+
+        try:
+            email_reg = re.compile(r'[a-zA-Z]{1}[\S.]+@[a-zA-Z]+\.[a-zA-Z]{2,}') # або r"[a-zA-Z0-9._ %-]+@[
+            # a-zA-Z0-9.-]+\.[a-zA-Z]{2, }"
+            if re.fullmatch(email_reg, value):
+                return value
+        except ValueError:
+            raise ValueError(f'Value {value} is not in correct format! Enter it in format "email prefix @ email domain"')
+
+    @Field.value.setter
+    def value(self, value: str) -> None:
+        Field.value.fset(self, value, self.__valid_email)
+
 
 class Birthday(Field):
     """
@@ -78,7 +108,8 @@ class Birthday(Field):
         try:
             date.fromisoformat(value)
         except ValueError: 
-            raise ValueError(f'Value {value} is not correct format! Also "2023-12-30"')
+            raise ValueError(f'Value {value} is not correct format! Also "2023-12-30"') # незрозуміло з точки зору
+            # англійської Also "2023-12-30"
         return value    
     
     @Field.value.setter
@@ -95,19 +126,23 @@ class Record:
     Attributes:
         name (Name): The name of the contact.
         phones (list): A list of phone numbers associated with the contact.
+        email (Email): The email of the contact.
         birthday (Birthday): The birthday of the contact.
     """
   
     def __init__(
             self, 
             name: Name | str, 
-            phones: list[Phone] | list[str] = [], 
-            birthday: Birthday | str | None = None, 
+            phones: list[Phone] | list[str] = [],
+            email: Email | str | None = None,
+            birthday: Birthday | str | None = None,
         ) -> None:
 
         self.name = self._name(name)
         self.phones = [self._phone(phone) for phone in phones]
+        self.email = None if email is None else self._email(bemail)
         self.birthday = None if birthday is None else self._birthday(birthday)
+    #     email
         
 
     def _name(self, name: str | Name) -> Name:
@@ -120,10 +155,15 @@ class Record:
             phone = Phone(phone)
         return phone
 
+    def _email(self, email: str | Email) -> Email:
+        if not isinstance(email, Email):
+            email = Email(email)
+        return email
+
     def _birthday(self, birthday: str | Birthday) -> Birthday:
         if not isinstance(birthday, Birthday):
             birthday = Birthday(birthday)
-        return birthday    
+        return birthday
     
     def add_phone(self, phone: Phone | str) -> None:
         """
@@ -174,8 +214,14 @@ class Record:
         inx = self.phones.index(old_phone)
         self.phones[inx] = new_phone
         
+
+    def change_email(self, email):
+        self.email = self._email(email)
+
+
     def change_birthday(self, birthday):
-        self.birthday = self._birthday(birthday)   
+        self.birthday = self._birthday(birthday)
+
 
     def days_to_birthday(self) -> int :
         """
@@ -198,17 +244,21 @@ class Record:
         except ValueError: # исключение для високосной дати 1го дня уууу-02-29
             exept_temp = Record(self.name, [] , today.replace(month=2, day=28).isoformat()) 
             return exept_temp.days_to_birthday() + 1
-        
-    
+
+
+
     def __str__(self) -> str:
         # вывод телефонов с новой строки и табуляцией
         birthday_str = f'birthday: {self.birthday or "Empty"}'
         phones_str = ", ".join([str(ph) for ph in self.phones])
+        email_str = f'email: {self.email or "Empty"}'
         return (
             f'<Record>:\n\tname: {self.name}'
             f'\n\tphones: {phones_str or "Empty"}\n\t'
+            f'{email_str}\n'
             f'{birthday_str}\n'
         )
+
 
     def __repr__(self) -> str:
         # __repr__ используется для того что бы показать как создается екземпляр
@@ -219,15 +269,19 @@ class Record:
         return (
             f'Record(name={self.name!r}, '
             f'phones=[{", ".join([ph.__repr__() for ph in self.phones])}, '
+            f'email={self.email!r}, '
             f'birthday={self.birthday!r})'
         )
 
     def to_dict(self) -> dict[str, dict[str, list[str] | str | None]]:
         phones = [str(phone) for phone in self.phones]
+        email = None if self.email is None else str(self.email)
         birthday = None if self.birthday is None else str(self.birthday)
+
         return {
             str(self.name): {
                 "phones": phones,
+                "email": email,
                 "birthday": birthday,
             },
         }
@@ -323,7 +377,7 @@ class AddressBook(UserDict):
         
         for name, record in data_json.items():
             self.add_record(
-                Record(name=name, phones=record['phones'], birthday=record['birthday'])
+                Record(name=name, phones=record['phones'], email=record['email'], birthday=record['birthday'] )
             )
 
     def __str__(self) -> str:
@@ -342,7 +396,8 @@ class AddressBook(UserDict):
         """
         search_list = []
         for record in self.data.values():
-            str_val_record = f"{record.name} {' '.join([str(ph)for ph in record.phones])} {record.birthday}"
+            str_val_record = f"{record.name} {' '.join([str(ph)for ph in record.phones])} {record.email}" \
+                             f" {record.birthday}"
             if search_word.lower() in str_val_record.lower():
                 search_list.append(record)       
         return search_list 

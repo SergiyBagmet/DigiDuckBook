@@ -51,8 +51,17 @@ def add_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added contact.
     """
-    if len(data) <= 1 : raise IndexError
-    if len(data) >= 3:
+    if len(data) <= 1: raise IndexError
+
+    if len(data) >= 4:
+        name, phone, email, birthday = data
+        record = Record(name, [phone], email, birthday)
+
+    elif len(data) >= 3:
+        name, phone, email = data
+        record = Record(name, [phone], email)
+
+    elif len(data) >= 3:
         name, phone, birthday = data
         record = Record(name, [phone], birthday)
     else:
@@ -126,6 +135,44 @@ def delete_handler(data: list[str]) -> str:
     del a_book[name]
     return f"contact {name} has be deleted"
 
+
+@input_error
+def add_handler_email(data: list[str]) -> str:
+    """
+    Add an email to an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the added email.
+    """
+    if len(data) <= 1 : raise IndexError
+    name, email, = data
+    record = a_book[name]
+    if record.email is not None:
+        return f"this contact {name} is already have an email: {record.email}"
+    record.change_email(email)
+    return f"contact {name} is added an email: {record.email}"
+
+
+@input_error
+def change_handler_email(data: list[str]) -> str:
+    """
+    Change the email of an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the changed email.
+    """
+    if len(data) <= 1: raise IndexError
+    name, email, = data
+    a_book[name].change_email(email)
+    return f"contact {name} has new email: {email}"
+
+
 @input_error
 def add_handler_birthday(data: list[str]) -> str:
     """
@@ -192,7 +239,7 @@ def search_handler(data: list[str]) -> str:
     search_word, = data
     res = "\n".join([str(rec)[9:] for rec in a_book.search(search_word)])
     if not res:  
-        return "not found any contact"
+        return "not found any contact" # краще any contact was hot found
     return res
 
 @input_error
@@ -280,7 +327,15 @@ BOT_COMMANDS = {
         ["change phone"], 
         "name old_phone(num) new_phone(num)"
         ),
-    add_handler_birthday : (
+    add_handler_email: (
+        ["email"],
+        "email"
+    ),
+    change_handler_email: (
+        ["change email"],
+        "name new_email"
+    ),
+    add_handler_birthday: (
         ["birthday"], 
         "name date(ISO)"
         ),
