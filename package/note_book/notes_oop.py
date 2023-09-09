@@ -11,7 +11,7 @@ class FieldNotes:
         self.value = value
 
     def __valid_value(self, value) -> None:
-        if isinstance(value , str) :
+        if not isinstance(value , str) :
             raise TypeError(f'Value {value} not corect have to be str')
         
     @property
@@ -75,7 +75,7 @@ class NoteBody(FieldNotes):
     """
     Class representing the Note body field in a record in the notes book.
     """
-    def __note_body_validation(note_body: str) -> None:
+    def __note_body_validation(self, note_body: str) -> None:
         if not (1 <= len(note_body) <= 300):
             raise ValueError("Tag is too short or long")
 
@@ -101,15 +101,20 @@ class RecordNote:
             self,
             # note_name: NoteName | str,
             note_body :NoteBody | str, 
-            note_id: None,
             note_tags: list[NoteTag] | list[str] = [],
+            note_id: None = None,
             ) -> None:
         
-        self.note_id = self.counter if note_id is None else note_id
-        self.counter += 1
-        # self.note_name = note_name
-        self.note_tags = [note_tag for note_tag in note_tags]
+        self.note_id = self.unic_id(note_id)
+        self.note_tags = [note_tag for note_tag in note_tags] 
         self.note_body = note_body
+
+    def unic_id(self, id) -> int:
+        if id is None :
+            __class__.counter += 1
+            return self.counter
+        else:
+            return id
 
     # TODO сделай такие три и инит прогони через них там где селф
     # для note_name note_body note_tag
@@ -155,9 +160,9 @@ class RecordNote:
     def __str__(self) -> str:
         # вывод заметки
         return (
-            f'<Record>:\n\tID: {self.note_id}'
-            f'\n\tNote tags: {self.note_tags}\n\t'
-            f'{self.note_body}\n')
+            f'\n\tID: {self.note_id}\n'
+            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n'
+            f'\t{self.note_body}\n')
     
     def to_dict_note_records(self) -> dict[int, dict[list[str], str]]:
         pass
@@ -168,7 +173,7 @@ class NotesBook(UserDict):
     with note_id as keys and record notes objects as values.
     """
     def add_note_record(self, note_record: RecordNote):
-        self.data[note_record.note_id.value] = note_record
+        self.data[note_record.note_id] = note_record
 
     def find_note_record(self, key_note_id: str):
         result = self.data.get(key_note_id)
@@ -205,13 +210,14 @@ class NotesBook(UserDict):
 if __name__ == "__main__":
     tag_1 = NoteTag("#inc")
     note_1 = NoteBody("hello I'm the first note")
-    # rec_1 = RecordNote(tag_1, note_1)
+    rec_1 = RecordNote(note_1,[tag_1])
 
-    # tag_2 = NoteTag("#digit")
-    # note_2 = NoteBody("hello I'm the second note")
-    # rec_2 = RecordNote(tag_2, note_2)
+    tag_2 = NoteTag("#digit")
+    note_2 = NoteBody("hello I'm the second note")
+    rec_2 = RecordNote(note_2, [tag_2])
 
-    # tag_3 = NoteTag("#letter")
-    # note_3 = NoteBody("hello I'm the third note")
-    # rec_3 = RecordNote(tag_3, note_3)
+    tag_3 = NoteTag("#letter")
+    note_3 = NoteBody("hello I'm the third note")
+    rec_3 = RecordNote(note_3, [tag_3])
 
+    print(rec_1, rec_2, rec_3)
