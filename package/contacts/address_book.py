@@ -310,8 +310,32 @@ class AddressBook(UserDict):
             raise KeyError(f"Can't delete contact {key} isn't in Address Book")
         del self.data[key]
 
-    def grups_days_to_bd(self, days: int) -> list[Record]:
-        pass
+    def groups_days_to_bd(self, days: int) -> list[Record]:
+        """
+
+        Display list of users which birthday is a given number of days from the current date
+
+        Returns:
+            list of records
+
+        """
+        current_date = date.today()
+        res_list = []
+
+        for user in self.data.values():
+            # str_val = f"{user['name'], user['birthday']}"
+            birthday = date.fromisoformat(user["birthday"])  # получаем дату из словаря
+            say_HB = birthday.replace(
+                year=current_date.year
+            )  # меняем год - дата напоминания для поздравления
+
+            if (
+                current_date
+                <= say_HB
+                < birthday.replace(year=current_date.year, day=days)
+            ):  # если др в промежутке сегодня включительно + кол-во дней
+                res_list.append(user["name"])
+            return res_list
 
     def to_dict(self) -> dict:
         """
@@ -401,3 +425,19 @@ class AddressBookEncoder(json.JSONEncoder):
 
 if __name__ == "__main__":
     pass
+
+
+# name = Name("John")
+# phone = "0688907654"
+# birthday = Birthday("1985-09-09")
+
+# name = Name("Jack")
+# phone = "0688907654"
+# birthday = Birthday("1989-09-12")
+
+a = AddressBook()
+# print(a)
+# r = Record(name, phone, birthday)
+# a.add_record(r)
+a.groups_days_to_bd(5)
+print(a)
