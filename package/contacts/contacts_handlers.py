@@ -5,10 +5,8 @@ from pathlib import Path
 from address_book import AddressBook, Record, Phone, AddressBookEncoder
 
 
-data_path = Path.home() / "data"
-data_path.mkdir(exist_ok=True)
-
-file_json  = data_path / "contacts.json"
+file_json  = Path.cwd() / "address_book.json" 
+# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 a_book = AddressBook() 
 try:
     with open(file_json, "r") as file:
@@ -57,19 +55,19 @@ def add_handler(data: list[str]) -> str:
         name, phone, email, birthday = data
         record = Record(name, [phone], email, birthday)
 
-    elif len(data) >= 3:
-        name, phone, email = data
-        record = Record(name, [phone], email)
-
-    elif len(data) >= 3:
-        name, phone, birthday = data
-        record = Record(name, [phone], birthday)
+    # elif len(data) == 3:
+    # TODO я сам подумаю пока без этого
+    #     name, phone, some = data 
+    #     try:
+    #         record = Record(name, [phone], email=some)
+    #     except ValueError:    
+    #         record = Record(name, [phone], birthday=some)
     else:
         name, phone, = data
         record = Record(name, [phone])     
 
     a_book.add_record(record)
-    return f"contact {str(record)} has be added"
+    return f"contact {str(record)[9:]} has be added"
 
 @input_error
 def add_handler_phone(data : list[str]) -> str:
@@ -285,7 +283,7 @@ def hello_handler(*args) -> str:
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
         json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
-    return "Good bye!"
+    return "\nAddress book has cloused\n"
 
 def unknown_command(*args) -> str:
     return 'Unknown command'
@@ -317,7 +315,7 @@ BOT_COMMANDS = {
         ),
     add_handler: (
         ["add", "+"], 
-        "name phone(num) or name phone(num) date(ISO)"
+        "name phone(num) / name phone(num) email birthday"
         ),
     add_handler_phone: (
         ["add_phone"], 
@@ -329,12 +327,12 @@ BOT_COMMANDS = {
         ),
     add_handler_email: (
         ["email"],
-        "email"
-    ),
+        "name email"
+        ),
     change_handler_email: (
         ["change email"],
         "name new_email"
-    ),
+        ),
     add_handler_birthday: (
         ["birthday"], 
         "name date(ISO)"
@@ -370,8 +368,8 @@ BOT_COMMANDS = {
         "- show all bot commands"
         ),    
     exit_handler: (
-        ["good bye", "close", "exit"], 
-        "- save changesets and exit"
+        ["menu", "back", "esc"], 
+        "- save changesets and go to menu"
         ),
 }
 

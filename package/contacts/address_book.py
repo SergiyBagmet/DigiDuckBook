@@ -49,6 +49,7 @@ class Phone(Field):
     Class representing the phone field in a record of the address book.
     """ 
     def __valid_phone(self, value) -> str: 
+        #TODO re +380** | 380** | 80** | 0** return +380**...
         phone = ''.join(filter(str.isdigit, value))
         if 9 >= len(phone) <= 15 : #псевдо проверка номера
             raise ValueError(f"Phone number {value} isn't correct")
@@ -75,15 +76,12 @@ class Email(Field):
         Returns:
             str: The valid email string.
         """
-
-        try:
-            email_reg = re.compile(r'[a-zA-Z]{1}[\S.]+@[a-zA-Z]+\.[a-zA-Z]{2,}') # або r"[a-zA-Z0-9._ %-]+@[
-            # a-zA-Z0-9.-]+\.[a-zA-Z]{2, }"
-            if re.fullmatch(email_reg, value):
-                return value
-        except ValueError:
+        email_pattern = re.compile(r'[a-zA-Z]{1}[\S.]+@[a-zA-Z]+\.[a-zA-Z]{2,}') 
+        # або r"[a-zA-Z0-9._ %-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2, }"
+        if re.fullmatch(email_pattern, value) is None:
             raise ValueError(f'Value {value} is not in correct format! Enter it in format "email prefix @ email domain"')
-
+        return value
+        
     @Field.value.setter
     def value(self, value: str) -> None:
         Field.value.fset(self, value, self.__valid_email)
@@ -108,8 +106,7 @@ class Birthday(Field):
         try:
             date.fromisoformat(value)
         except ValueError: 
-            raise ValueError(f'Value {value} is not correct format! Also "2023-12-30"') # незрозуміло з точки зору
-            # англійської Also "2023-12-30"
+            raise ValueError(f'Value {value} is not correct format! for example "2023-12-30"') 
         return value    
     
     @Field.value.setter
@@ -140,11 +137,10 @@ class Record:
 
         self.name = self._name(name)
         self.phones = [self._phone(phone) for phone in phones]
-        self.email = None if email is None else self._email(bemail)
+        self.email = None if email is None else self._email(email)
         self.birthday = None if birthday is None else self._birthday(birthday)
-    #     email
+    
         
-
     def _name(self, name: str | Name) -> Name:
         if not isinstance(name, Name):
             name = Name(name)
@@ -215,11 +211,11 @@ class Record:
         self.phones[inx] = new_phone
         
 
-    def change_email(self, email):
+    def change_email(self, email : Email) -> None:
         self.email = self._email(email)
 
 
-    def change_birthday(self, birthday):
+    def change_birthday(self, birthday: Birthday) -> None:
         self.birthday = self._birthday(birthday)
 
 
@@ -250,13 +246,13 @@ class Record:
     def __str__(self) -> str:
         # вывод телефонов с новой строки и табуляцией
         birthday_str = f'birthday: {self.birthday or "Empty"}'
-        phones_str = ", ".join([str(ph) for ph in self.phones])
         email_str = f'email: {self.email or "Empty"}'
+        phones_str = ", ".join([str(ph) for ph in self.phones])
         return (
-            f'<Record>:\n\tname: {self.name}'
-            f'\n\tphones: {phones_str or "Empty"}\n\t'
-            f'{email_str}\n'
-            f'{birthday_str}\n'
+            f'<Record>:\n\tname: {self.name}\n'
+            f'\tphones: {phones_str or "Empty"}\n'
+            f'\t{email_str}\n'
+            f'\t{birthday_str}\n'
         )
 
 
@@ -377,7 +373,10 @@ class AddressBook(UserDict):
         
         for name, record in data_json.items():
             self.add_record(
-                Record(name=name, phones=record['phones'], email=record['email'], birthday=record['birthday'] )
+                Record(name=name, 
+                       phones=record['phones'], 
+                       email=record['email'], 
+                       birthday=record['birthday'] )
             )
 
     def __str__(self) -> str:
@@ -396,8 +395,11 @@ class AddressBook(UserDict):
         """
         search_list = []
         for record in self.data.values():
-            str_val_record = f"{record.name} {' '.join([str(ph)for ph in record.phones])} {record.email}" \
-                             f" {record.birthday}"
+            str_val_record = (f'{record.name}' 
+                                f'{" ".join([str(ph)for ph in record.phones])}' 
+                                f'{record.email}'
+                                f'{record.birthday}'
+                                )
             if search_word.lower() in str_val_record.lower():
                 search_list.append(record)       
         return search_list 
