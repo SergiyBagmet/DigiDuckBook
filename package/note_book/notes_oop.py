@@ -38,22 +38,6 @@ class FieldNotes:
         return self.value == value
 
 
-
-# class NoteName(FieldNotes):
-    # """
-    # Class representing the Note name field in a record in the notes book.
-    # """
-  
-    # def __note_name_validation(self, note_name: str) -> None:
-    #     if not (1<= len(note_name) <= 20):
-    #         raise ValueError("Note name is too short or long")
-
-    # @FieldNotes.value.setter
-    # def value(self, note_name: str) -> None:
-    #     FieldNotes.value.fset(self, note_name, self.__note_name_validation)
-
-
-
 class NoteTag(FieldNotes):
     """
     Class representing the Note tag field in a record in the notes book.
@@ -99,16 +83,16 @@ class RecordNote:
 
     def __init__(
             self,
-            # note_name: NoteName | str,
             note_body :NoteBody | str, 
             note_tags: list[NoteTag] | list[str] = [],
             note_id: None = None,
             ) -> None:
-        
-        self.note_id = self.unic_id(note_id)
-        self.note_tags = [note_tag for note_tag in note_tags] 
-        self.note_body = note_body
+        # исправил
+        self.note_id = str(self.unic_id(note_id)) # ложу строку так как ти дальше по коду хочешь строку ключом вообще можно инт влом било переписивать
+        self.note_tags = [self._tag(note_tag) for note_tag in note_tags] 
+        self.note_body = self._body(note_body)
 
+    # добавил
     def unic_id(self, id) -> int:
         if id is None :
             __class__.counter += 1
@@ -116,14 +100,17 @@ class RecordNote:
         else:
             return id
 
-    # TODO сделай такие три и инит прогони через них там где селф
-    # для note_name note_body note_tag
-    # а так вообще красава мелкие недочети я поправил 
-    # продолжай в том же духе докстринги сразу єто найс!!! даже я так не пишу
-    # def _name(self, name: str | Name) -> Name:
-    #     if not isinstance(name, Name):
-    #         name = Name(name)
-    #     return name    
+    #добавил используй где необходимо дальше по коду
+    def _tag(self, tag: str | NoteTag) -> NoteTag:
+        if not isinstance(tag, NoteTag):
+            tag = NoteTag(tag)
+        return tag
+
+    #добавил --//--
+    def _body(self, body: str | NoteBody) -> NoteBody:
+        if not isinstance(body, NoteBody):
+            body = NoteBody(body)
+        return body    
 
     def add_notetag(self, note_tag: NoteTag | str):
         """
@@ -133,7 +120,7 @@ class RecordNote:
         Returns:
             None: This method does not return any value.
         """ 
-        if note_tag in self.note_tags:
+        if note_tag := self._tag(note_tag) in self.note_tags:
             raise ValueError("This notetag has already been added")
         self.note_tags.append(note_tag)
 
@@ -149,22 +136,23 @@ class RecordNote:
             None: This method does not return any value.
         """
         try:
-            self.note_tags.remove(note_tag)
+            self.note_tags.remove(self._tag(note_tag))
         except ValueError:
             raise ValueError(f"phone: {note_tag} not exists")
 
 
-    def change_notebody(self, old_notebody: NoteBody | str, new_notebody: NoteBody | str):
-        pass
+    def change_notebody(self, new_notebody: NoteBody | str):
+        pass # не будет старого просто перезаписиваем 
+                # а если такой же метод для тега то да нужно старий и новий
 
     def __str__(self) -> str:
         # вывод заметки
         return (
             f'\n\tID: {self.note_id}\n'
-            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n'
+            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n' # исправил
             f'\t{self.note_body}\n')
     
-    def to_dict_note_records(self) -> dict[int, dict[list[str], str]]:
+    def to_dict(self) -> dict[int, dict[list[str], str]]:
         pass
 
 class NotesBook(UserDict):
@@ -173,23 +161,26 @@ class NotesBook(UserDict):
     with note_id as keys and record notes objects as values.
     """
     def add_note_record(self, note_record: RecordNote):
-        self.data[note_record.note_id] = note_record
+        if not isinstance(note_record, RecordNote):
+            raise # TODO напиши я уже устал спать хочу 23.41
+        self.data[note_record.note_id] = note_record # исправил у id нет поля валуе
 
-    def find_note_record(self, key_note_id: str):
-        result = self.data.get(key_note_id)
-        if self.data.get(key_note_id) == None:
+    # исправил можно переделать єтот на __getitem__ но и єтот не особо нуже 
+    #єто все можно било сделать и в хедлере банальной проверкой на нан
+    def find_note_record(self, key_note_id: str): 
+        if note_record := self.data.get(key_note_id) is None:
             raise ValueError("There isn't such note")
-        return result
+        return note_record
     
-    def find_note_record_tag(self, tag: str):
-        results = []
+    # исправил а точнее переделал
+    def find_note_record_tag(self, tag: str) -> list[RecordNote]:
+        list_rec_notes = []
 
-        for key, value in self.data():
-            inner_list, result = value
-            if tag in inner_list:
-                results.append((key, result))
-            else:
-                raise ValueError("There isn't such note")
+        for rec_note in self.data.values(): # items или values а так ти просто по ключам бежишь!!!!        
+            if (tag := RecordNote._tag(tag)) in rec_note.note_tags:
+                list_rec_notes.append(rec_note)
+
+        return list_rec_notes    
 
     def __delaitem__(self, key: str) -> None:
         """
@@ -202,7 +193,7 @@ class NotesBook(UserDict):
         """
         if not isinstance(key, str):
             raise KeyError("Value must be string")
-        if key not in self.data:
+        if not key in self.data:
             raise KeyError(f"Can't delete note {key} isn't in note Book")
         del self.data[key]
 
