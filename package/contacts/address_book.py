@@ -319,6 +319,7 @@ class AddressBook(UserDict):
             list of records
 
         """
+
         current_date = date.today()
         res_list = []
 
@@ -428,7 +429,7 @@ if __name__ == "__main__":
 
 
 # name = Name("John")
-# phone = "0688907654"
+# phone = "0688907654"  # який формат телефону
 # birthday = Birthday("1985-09-09")
 
 # name = Name("Jack")
