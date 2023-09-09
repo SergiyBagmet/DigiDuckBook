@@ -207,18 +207,11 @@ if __name__ == "__main__":
     note_1 = NoteBody("hello I'm the first note")
     # rec_1 = RecordNote(tag_1, note_1)
 
-    # tag_2 = NoteTag("digit")
+    # tag_2 = NoteTag("#digit")
     # note_2 = NoteBody("hello I'm the second note")
     # rec_2 = RecordNote(tag_2, note_2)
 
-    # tag_3 = NoteTag("letter")
+    # tag_3 = NoteTag("#letter")
     # note_3 = NoteBody("hello I'm the third note")
     # rec_3 = RecordNote(tag_3, note_3)
 
-    # rec_5.add_phone(phone_6)
-    # ab = AddressBook()
-    # ab.add_record(rec_1)
-    # ab.add_record(rec_2)
-    # ab.add_record(rec_3)
-    # ab.add_record(rec_4)
-    # ab.add_record(rec_5)
