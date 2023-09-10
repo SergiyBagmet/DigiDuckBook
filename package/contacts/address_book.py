@@ -1,6 +1,6 @@
 from collections import UserDict
 import json
-from datetime import date
+from datetime import date, timedelta
 import typing as t
 
 
@@ -310,7 +310,7 @@ class AddressBook(UserDict):
             raise KeyError(f"Can't delete contact {key} isn't in Address Book")
         del self.data[key]
 
-    def groups_days_to_bd(self, days: int) -> list[Record]:
+    def groups_days_to_bd(self, input_days: str) -> list[Record]:
         """
 
         Display list of users which birthday is a given number of days from the current date
@@ -319,23 +319,20 @@ class AddressBook(UserDict):
             list of records
 
         """
-
+        if not input_days.isdigit():
+            raise ValueError(f"Not valid days {input_days}, please input num")
         current_date = date.today()
-        res_list = []
+        time_delta = timedelta(days=int(input_days))
+        last_date = current_date + time_delta
+        list_records = []
 
-        for user in self.data.values():
-            birthday = date.fromisoformat(
-                user.birthday.value
-            )  # получаем дату из словаря
-            say_HB = birthday.replace(
-                year=current_date.year
-            )  # меняем год - дата напоминания для поздравления
+        for record in self.data.values():
+            birthday: date = record.birthday.get_date() # получаем дату из словаря
+            birthday = birthday.replace(year=current_date.year)  # меняем год - дата напоминания для поздравления
 
-            if (
-                abs((current_date - say_HB).days) <= days
-            ):  # если др в промежутке сегодня включительно + кол-во дней
-                res_list.append(user.name.value)
-            return res_list
+            if (current_date <= birthday <=last_date):  # если др в промежутке сегодня включительно + кол-во дней
+                list_records.append(record)
+        return list_records
 
     def to_dict(self) -> dict:
         """
@@ -427,19 +424,19 @@ if __name__ == "__main__":
     pass
 
 
-name = Name("John")
-phone = "3800649999"
-birthday = Birthday("1985-09-09")
+# name = Name("John")
+# phone = "3800649999"
+# birthday = Birthday("1985-09-09")
 
-name1 = Name("Jack")
-phone1 = "0688907654"
-birthday1 = Birthday("1989-09-22")
+# name1 = Name("Jack")
+# phone1 = "0688907654"
+# birthday1 = Birthday("1989-09-22")
 
-a = AddressBook()
-print(a)
-r = Record(name, phone, birthday)
-r1 = Record(name1, phone1, birthday1)
-a.add_record(r)
-a.add_record(r1)
-a.groups_days_to_bd(5)
-print(a.groups_days_to_bd(5))
+# a = AddressBook()
+# print(a)
+# r = Record(name, phone, birthday)
+# r1 = Record(name1, phone1, birthday1)
+# a.add_record(r)
+# a.add_record(r1)
+# a.groups_days_to_bd(5)
+# print(a.groups_days_to_bd(5))

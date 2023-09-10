@@ -5,10 +5,8 @@ from pathlib import Path
 from address_book import AddressBook, Record, Phone, AddressBookEncoder
 
 
-data_path = Path.home() / "data"
-data_path.mkdir(exist_ok=True)
 
-file_json  = data_path / "contacts.json"
+file_json  = Path.cwd() / "contacts.json"
 a_book = AddressBook() 
 try:
     with open(file_json, "r") as file:
@@ -178,6 +176,13 @@ def handler_days_to_birthday(data: list[str]) -> str:
     return f"{days} days left until {name}'s birthday"  
 
 @input_error
+def delta_bday_handler(data: list[str]) -> str:
+    if len(data) < 1 : raise IndexError
+    days, = data
+    records = a_book.groups_days_to_bd(days)
+    return "\n".join(map(str, records))
+
+@input_error
 def search_handler(data: list[str]) -> str:
     """
     Search for contacts by a given keyword.
@@ -290,7 +295,12 @@ BOT_COMMANDS = {
         ),
     handler_days_to_birthday: (
         ["days"], 
-        "name"),
+        "name"
+        ),
+    delta_bday_handler :(
+        ["delta"],
+        "delta days(num)"
+        ),    
     del_handler_phone: (
         ["del phone"], 
         "name phone(num)"
