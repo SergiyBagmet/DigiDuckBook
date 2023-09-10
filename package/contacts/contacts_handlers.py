@@ -2,18 +2,16 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-from address_book import AddressBook, Record, Phone, AddressBookEncoder
-
-
-
-file_json  = Path.cwd() / "contacts.json"
+from .address_book import AddressBook, Record, Phone, AddressBookEnco
+file_json  = Path.cwd() / "address_book.json" 
+# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 a_book = AddressBook() 
 try:
     with open(file_json, "r") as file:
         unpacked = json.load(file)
     a_book.from_dict(unpacked)
 except FileNotFoundError:
-    with open(file_json, "w") as file:
+    with open(file_json, "w") as fi
         json.dump({}, file)
      
 def input_error(func):
@@ -49,16 +47,25 @@ def add_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added contact.
     """
-    if len(data) <= 1 : raise IndexError
-    if len(data) >= 3:
-        name, phone, birthday = data
-        record = Record(name, [phone], birthday)
+    if len(data) <= 1: raise IndexError
+
+    if len(data) >= 4:
+        name, phone, email, birthday = data
+        record = Record(name, [phone], email, birthday)
+
+    # elif len(data) == 3:
+    # TODO я сам подумаю пока без этого
+    #     name, phone, some = data 
+    #     try:
+    #         record = Record(name, [phone], email=some)
+    #     except ValueError:    
+    #         record = Record(name, [phone], birthday=some)
     else:
         name, phone, = data
         record = Record(name, [phone])     
 
     a_book.add_record(record)
-    return f"contact {str(record)} has be added"
+    return f"contact {str(record)[9:]} has be added"
 
 @input_error
 def add_handler_phone(data : list[str]) -> str:
@@ -123,6 +130,44 @@ def delete_handler(data: list[str]) -> str:
     name, = data
     del a_book[name]
     return f"contact {name} has be deleted"
+
+
+@input_error
+def add_handler_email(data: list[str]) -> str:
+    """
+    Add an email to an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the added email.
+    """
+    if len(data) <= 1 : raise IndexError
+    name, email, = data
+    record = a_book[name]
+    if record.email is not None:
+        return f"this contact {name} is already have an email: {record.email}"
+    record.change_email(email)
+    return f"contact {name} is added an email: {record.email}"
+
+
+@input_error
+def change_handler_email(data: list[str]) -> str:
+    """
+    Change the email of an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the changed email.
+    """
+    if len(data) <= 1: raise IndexError
+    name, email, = data
+    a_book[name].change_email(email)
+    return f"contact {name} has new email: {email}"
+
 
 @input_error
 def add_handler_birthday(data: list[str]) -> str:
@@ -197,7 +242,7 @@ def search_handler(data: list[str]) -> str:
     search_word, = data
     res = "\n".join([str(rec)[9:] for rec in a_book.search(search_word)])
     if not res:  
-        return "not found any contact"
+        return "not found any contact" # краще any contact was hot found
     return res
 
 @input_error
@@ -243,7 +288,7 @@ def hello_handler(*args) -> str:
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
         json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
-    return "Good bye!"
+    return "\nAddress book has cloused\n"
 
 def unknown_command(*args) -> str:
     return 'Unknown command'
@@ -275,7 +320,7 @@ BOT_COMMANDS = {
         ),
     add_handler: (
         ["add", "+"], 
-        "name phone(num) or name phone(num) date(ISO)"
+        "name phone(num) / name phone(num) email birthday"
         ),
     add_handler_phone: (
         ["add_phone"], 
@@ -285,7 +330,15 @@ BOT_COMMANDS = {
         ["change phone"], 
         "name old_phone(num) new_phone(num)"
         ),
-    add_handler_birthday : (
+    add_handler_email: (
+        ["email"],
+        "name email"
+        ),
+    change_handler_email: (
+        ["change email"],
+        "name new_email"
+        ),
+    add_handler_birthday: (
         ["birthday"], 
         "name date(ISO)"
         ),
@@ -325,8 +378,8 @@ BOT_COMMANDS = {
         "- show all bot commands"
         ),    
     exit_handler: (
-        ["good bye", "close", "exit"], 
-        "- save changesets and exit"
+        ["menu", "back", "esc"], 
+        "- save changesets and go to menu"
         ),
 }
 
