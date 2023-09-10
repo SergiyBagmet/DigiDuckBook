@@ -2,7 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-from .address_book import AddressBook, Record, Phone, AddressBookEncoder
+from .address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
 
 
 file_json  = Path.cwd() / "address_book.json" 
@@ -49,25 +49,33 @@ def add_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added contact.
     """
-    if len(data) <= 1: raise IndexError
-
-    if len(data) >= 4:
-        name, phone, email, birthday = data
-        record = Record(name, [phone], email, birthday)
-
-    # elif len(data) == 3:
-    # TODO я сам подумаю пока без этого
-    #     name, phone, some = data 
-    #     try:
-    #         record = Record(name, [phone], email=some)
-    #     except ValueError:    
-    #         record = Record(name, [phone], birthday=some)
-    else:
+    if len(data)>=2:
         name, phone, = data
-        record = Record(name, [phone])     
+        record = Record(name, [phone])
+    elif len(data) == 1:
+        raise IndexError
+    else :
+        record = step_input()
 
     a_book.add_record(record)
-    return f"contact {str(record)[9:]} has be added"
+    return f"contact {str(record)[9:]} has been added"
+
+def step_input() -> Record:
+    dict_input = {Name: False, Phone: False,
+                  Email : False, Birthday: False, Address: False}
+    counter = 0
+    while counter < len(dict_input):
+        key_class = list(dict_input.keys())[counter]
+        var = input(f"Enter {key_class.__name__.lower()} :\t")
+        try:
+            if var in ["next", "-", "empty"] : var = None
+            dict_input[key_class] = key_class(var)
+        except ValueError as er:
+            print(er)
+            continue
+        counter += 1
+    name, phone, email, birthday, address = dict_input.values()
+    return Record(name, [phone], email, birthday, address)
 
 @input_error
 def add_handler_phone(data : list[str]) -> str:
@@ -149,9 +157,9 @@ def add_handler_email(data: list[str]) -> str:
     name, email, = data
     record = a_book[name]
     if record.email is not None:
-        return f"this contact {name} is already have an email: {record.email}"
+        return f"this contact {name} has already have an email: {record.email}"
     record.change_email(email)
-    return f"contact {name} is added an email: {record.email}"
+    return f"contact {name} has got an email: {record.email}"
 
 
 @input_error
@@ -186,7 +194,7 @@ def add_handler_birthday(data: list[str]) -> str:
     name, birthday, = data
     record = a_book[name]
     if record.birthday is not None:
-        return f"this contact {name} is already have a date of birth: {record.birthday}"
+        return f"this contact {name} has already have a date of birth: {record.birthday}"
     record.change_birthday(birthday)
     return f"contact {name} is added a date of birth: {record.birthday}"
     
@@ -221,6 +229,43 @@ def handler_days_to_birthday(data: list[str]) -> str:
     name, = data
     days = a_book[name].days_to_birthday() 
     return f"{days} days left until {name}'s birthday"  
+
+@input_error
+def add_handler_address(data: list[str]) -> str:
+    """
+    Add an address to an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the added address.
+    """
+    if len(data) <= 1 : raise IndexError
+    name, address, = data
+    record = a_book[name]
+    if record.address is not None:
+        return f"this contact {name} has already have an address: {record.address}"
+    record.change_address(address)
+    return f"contact {name} has got an address: {record.address}"
+
+
+@input_error
+def change_handler_address(data: list[str]) -> str:
+    """
+    Change the address of an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the changed address.
+    """
+    if len(data) <= 1: raise IndexError
+    name, address, = data
+    a_book[name].change_address(address)
+    return f"contact {name} has new address: {address}"
+
 
 @input_error
 def search_handler(data: list[str]) -> str:
@@ -344,6 +389,14 @@ BOT_COMMANDS = {
     handler_days_to_birthday: (
         ["days"], 
         "name"),
+    add_handler_address: (
+        ["address"],
+        "name address"
+        ),
+    change_handler_email: (
+        ["change address"],
+        "name new_address"
+        ),
     del_handler_phone: (
         ["del phone"], 
         "name phone(num)"
