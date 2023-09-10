@@ -2,9 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-from .address_book import AddressBook, Record, Phone, AddressBookEncoder
-
-
+from .address_book import AddressBook, Record, Phone, AddressBookEnco
 file_json  = Path.cwd() / "address_book.json" 
 # TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 a_book = AddressBook() 
@@ -13,7 +11,7 @@ try:
         unpacked = json.load(file)
     a_book.from_dict(unpacked)
 except FileNotFoundError:
-    with open(file_json, "w") as file:
+    with open(file_json, "w") as fi
         json.dump({}, file)
      
 def input_error(func):
@@ -223,6 +221,13 @@ def handler_days_to_birthday(data: list[str]) -> str:
     return f"{days} days left until {name}'s birthday"  
 
 @input_error
+def delta_bday_handler(data: list[str]) -> str:
+    if len(data) < 1 : raise IndexError
+    days, = data
+    records = a_book.groups_days_to_bd(days)
+    return "\n".join(map(str, records))
+
+@input_error
 def search_handler(data: list[str]) -> str:
     """
     Search for contacts by a given keyword.
@@ -343,7 +348,12 @@ BOT_COMMANDS = {
         ),
     handler_days_to_birthday: (
         ["days"], 
-        "name"),
+        "name"
+        ),
+    delta_bday_handler :(
+        ["delta"],
+        "delta days(num)"
+        ),    
     del_handler_phone: (
         ["del phone"], 
         "name phone(num)"
