@@ -324,18 +324,17 @@ class AddressBook(UserDict):
         res_list = []
 
         for user in self.data.values():
-            # str_val = f"{user['name'], user['birthday']}"
-            birthday = date.fromisoformat(user["birthday"])  # получаем дату из словаря
+            birthday = date.fromisoformat(
+                user.birthday.value
+            )  # получаем дату из словаря
             say_HB = birthday.replace(
                 year=current_date.year
             )  # меняем год - дата напоминания для поздравления
 
             if (
-                current_date
-                <= say_HB
-                < birthday.replace(year=current_date.year, day=days)
+                abs((current_date - say_HB).days) <= days
             ):  # если др в промежутке сегодня включительно + кол-во дней
-                res_list.append(user["name"])
+                res_list.append(user.name.value)
             return res_list
 
     def to_dict(self) -> dict:
@@ -428,17 +427,19 @@ if __name__ == "__main__":
     pass
 
 
-# name = Name("John")
-# phone = "0688907654"  # який формат телефону
-# birthday = Birthday("1985-09-09")
+name = Name("John")
+phone = "3800649999"
+birthday = Birthday("1985-09-09")
 
-# name = Name("Jack")
-# phone = "0688907654"
-# birthday = Birthday("1989-09-12")
+name1 = Name("Jack")
+phone1 = "0688907654"
+birthday1 = Birthday("1989-09-22")
 
 a = AddressBook()
-# print(a)
-# r = Record(name, phone, birthday)
-# a.add_record(r)
-a.groups_days_to_bd(5)
 print(a)
+r = Record(name, phone, birthday)
+r1 = Record(name1, phone1, birthday1)
+a.add_record(r)
+a.add_record(r1)
+a.groups_days_to_bd(5)
+print(a.groups_days_to_bd(5))
