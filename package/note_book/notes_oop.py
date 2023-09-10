@@ -1,6 +1,6 @@
 from collections import UserDict
 import typing as t
-
+import json
 
 
 class FieldNotes:
@@ -43,7 +43,7 @@ class NoteTag(FieldNotes):
     Class representing the Note tag field in a record in the notes book.
     """
     def __note_tag_validation(self, note_tag: str) -> None:
-        if not (2 <= len(note_tag) <= 10):
+        if not (2 <= len(note_tag) <= 20):
             raise ValueError("Tag is too short or long")
         if not note_tag.startswith('#'):
             raise ValueError("Tag should start with #")
@@ -87,12 +87,12 @@ class RecordNote:
             note_tags: list[NoteTag] | list[str] = [],
             note_id: None = None,
             ) -> None:
-        # исправил
-        self.note_id = str(self.unic_id(note_id)) # ложу строку так как ти дальше по коду хочешь строку ключом вообще можно инт влом било переписивать
+        
+        self.note_id = str(self.unic_id(note_id)) 
         self.note_tags = [self._tag(note_tag) for note_tag in note_tags] 
         self.note_body = self._body(note_body)
 
-    # добавил
+    
     def unic_id(self, id) -> int:
         if id is None :
             __class__.counter += 1
@@ -100,13 +100,13 @@ class RecordNote:
         else:
             return id
 
-    #добавил используй где необходимо дальше по коду
+    
     def _tag(self, tag: str | NoteTag) -> NoteTag:
         if not isinstance(tag, NoteTag):
             tag = NoteTag(tag)
         return tag
 
-    #добавил --//--
+    
     def _body(self, body: str | NoteBody) -> NoteBody:
         if not isinstance(body, NoteBody):
             body = NoteBody(body)
@@ -120,7 +120,7 @@ class RecordNote:
         Returns:
             None: This method does not return any value.
         """ 
-        if note_tag := self._tag(note_tag) in self.note_tags:
+        if (note_tag := self._tag(note_tag)) in self.note_tags:
             raise ValueError("This notetag has already been added")
         self.note_tags.append(note_tag)
 
@@ -140,20 +140,23 @@ class RecordNote:
         except ValueError:
             raise ValueError(f"phone: {note_tag} not exists")
 
-
-    def change_notebody(self, new_notebody: NoteBody | str):
-        pass # не будет старого просто перезаписиваем 
-                # а если такой же метод для тега то да нужно старий и новий
-
+    
     def __str__(self) -> str:
-        # вывод заметки
+        
         return (
             f'\n\tID: {self.note_id}\n'
-            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n' # исправил
+            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n'
             f'\t{self.note_body}\n')
     
     def to_dict(self) -> dict[int, dict[list[str], str]]:
-        pass
+        note_tags = [str(note_tag) for note_tag in self.note_tags]
+        note_body = None if self.note_body is None else str(self.note_body)
+        return {
+            str(self.note_id): {
+                "Tags": note_tags,
+                "Note": note_body,
+            },
+        }
 
 class NotesBook(UserDict):
     """
@@ -162,22 +165,21 @@ class NotesBook(UserDict):
     """
     def add_note_record(self, note_record: RecordNote):
         if not isinstance(note_record, RecordNote):
-            raise # TODO напиши я уже устал спать хочу 23.41
-        self.data[note_record.note_id] = note_record # исправил у id нет поля валуе
+            raise TypeError("Note Record must be an instance of the RecordNote class.")
+        self.data[note_record.note_id] = note_record 
 
-    # исправил можно переделать єтот на __getitem__ но и єтот не особо нуже 
-    #єто все можно било сделать и в хедлере банальной проверкой на нан
+    
     def find_note_record(self, key_note_id: str): 
-        if note_record := self.data.get(key_note_id) is None:
+        if (note_record := self.data.get(key_note_id)) is None:
             raise ValueError("There isn't such note")
         return note_record
     
-    # исправил а точнее переделал
+    
     def find_note_record_tag(self, tag: str) -> list[RecordNote]:
         list_rec_notes = []
 
-        for rec_note in self.data.values(): # items или values а так ти просто по ключам бежишь!!!!        
-            if (tag := RecordNote._tag(tag)) in rec_note.note_tags:
+        for rec_note in self.data.values():         
+            if (tag := rec_note._tag(tag)) in rec_note.note_tags:
                 list_rec_notes.append(rec_note)
 
         return list_rec_notes    
@@ -197,11 +199,44 @@ class NotesBook(UserDict):
             raise KeyError(f"Can't delete note {key} isn't in note Book")
         del self.data[key]
 
+    def __str__(self) -> str:
+        return '\n'.join([str(r) for r in self.values()])
+    
+    def to_dict(self) -> dict:
+        """
+        Convert the notes book to a dictionary.
+
+        Returns:
+            dict: A dictionary representing the notes book.
+        """
+        res_dict = {}
+        for note_record in self.data.values():
+            res_dict.update(note_record.to_dict())
+        return res_dict
+    
+    def from_dict(self, data_json: dict) -> None:
+        """
+        Load data from a dictionary into the notes book.
+
+        Args:
+            data_json (dict): A dictionary containing data for the address book.
+        Raises:
+            TypeError: If the provided data is not a dictionary.
+        """
+        if not isinstance(data_json, dict):
+            raise TypeError("this is not dict")
+        
+        for key, value in data_json.items():
+            self.add_note_record(
+                RecordNote(note_id=key, note_tags=value['Tags'], note_body=value['Note'])
+            )    
+
 
 if __name__ == "__main__":
     tag_1 = NoteTag("#inc")
+    tag_11 = NoteTag('#text')
     note_1 = NoteBody("hello I'm the first note")
-    rec_1 = RecordNote(note_1,[tag_1])
+    rec_1 = RecordNote(note_1,[tag_1, tag_11])
 
     tag_2 = NoteTag("#digit")
     note_2 = NoteBody("hello I'm the second note")
@@ -211,4 +246,34 @@ if __name__ == "__main__":
     note_3 = NoteBody("hello I'm the third note")
     rec_3 = RecordNote(note_3, [tag_3])
 
-    print(rec_1, rec_2, rec_3)
+    # print(rec_1, rec_2, rec_3)
+
+   
+
+    rec_1.remove_notetag("#inc")
+    
+    tag_12 = NoteTag("#additional")
+    
+    rec_2.add_notetag(tag_3)
+
+    # print(rec_1, rec_2)
+
+
+    nb = NotesBook()
+    nb.add_note_record(rec_1)
+    nb.add_note_record(rec_2)
+    nb.add_note_record(rec_3)
+
+    # print(nb)
+
+    # print(nb.find_note_record("2"))
+
+    # print(nb.find_note_record_tag('#letter'))
+
+    with open('data_note.json', 'w', encoding='utf-8') as f:
+        json.dump(nb.to_dict(), f, ensure_ascii=False, indent=4)
+
+
+    with open('data_note.json', 'r', encoding='utf-8') as f:
+        restore_data = json.load(f)
+        print(restore_data)
