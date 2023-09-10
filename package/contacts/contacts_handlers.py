@@ -61,7 +61,13 @@ def add_handler(data: list[str]) -> str:
     a_book.add_record(record)
     return f"contact {str(record)[9:]} has been added"
 
-def step_input() -> Record:
+def step_input() -> Record: # only for command add
+    """
+    Prompt the user to enter contact information step by step.
+
+    Returns:
+        Record: A contact record created from the entered information.
+    """
     dict_input = {Name: False, Phone: False,
                   Email : False, Birthday: False, Address: False}
     counter = 0
@@ -69,7 +75,6 @@ def step_input() -> Record:
         key_class = list(dict_input.keys())[counter]
         var = input(f"Enter {key_class.__name__.lower()} :\t")
         try:
-            if var in ["next", "-", "empty"] : var = None
             dict_input[key_class] = key_class(var)
         except ValueError as er:
             print(er)

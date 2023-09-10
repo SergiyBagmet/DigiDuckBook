@@ -517,6 +517,3 @@ class AddressBookEncoder(json.JSONEncoder):
 
 if __name__ == "__main__":
     pass
-
-
-
