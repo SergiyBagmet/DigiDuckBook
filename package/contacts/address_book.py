@@ -1,23 +1,25 @@
 from collections import UserDict
-import re, json
-from datetime import date 
+import json, re
+from datetime import date, timedelta
 import typing as t
+
 
 class Field:
     """
     Parent class representing a field used in the record of the address book.
     """
+
     def __init__(self, value: str) -> None:
-        self.value = value 
-      
+        self.value = value
+
     def __valid_value(self, value) -> None:
         if not isinstance(value, str):
             raise TypeError(f'Value {value} is not valid. It must be a string')
         
     @property
-    def value(self) :
+    def value(self):
         return self._value
-    
+
     @value.setter
     def value(self, value: str, validation: t.Callable | None = None) -> None:
         self.__valid_value(value)
@@ -26,24 +28,25 @@ class Field:
         self._value = value
 
     def __str__(self) -> str:
-        return f'{self.value}'
-    
+        return f"{self.value}"
+
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(value={self.value})'
-    
+        return f"{self.__class__.__name__}(value={self.value})"
+
     def __eq__(self, val):  # ==
-        if isinstance(val, self.__class__): # можно и через if hasattr(val, 'value'):
+        if isinstance(val, self.__class__):  # можно и через if hasattr(val, 'value'):
             val = val.value
         return self.value == val
-    
+
 
 class Name(Field):
     """
     Class representing the name field in a record of the address book.
     """
+
     pass
- 
-       
+
+
 class Phone(Field):
     """
     Class representing the phone field in a record of the address book.
@@ -54,11 +57,10 @@ class Phone(Field):
             raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380991112233"')
         return value
 
-
-    @Field.value.setter # переопределяем сеттер родительского класса
+    @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
         Field.value.fset(self, value, self.__valid_phone)
-        
+
 
 class Email(Field):
     """
@@ -101,7 +103,7 @@ class Birthday(Field):
         Raises:
             ValueError: If the input date string is not in a valid date format(ISO).
         Returns:
-            str: The valid ISO-formatted date string.    
+            str: The valid ISO-formatted date string.
         """
         try:
             date.fromisoformat(value)
@@ -112,7 +114,7 @@ class Birthday(Field):
     @Field.value.setter
     def value(self, value: str) -> None:
         Field.value.fset(self, value, self.__valid_date)
-        
+
     def get_date(self) -> date:
         return date.fromisoformat(self.value)
 
@@ -153,7 +155,6 @@ class Record:
         birthday (Birthday): The birthday of the contact.
         address (Address): The address of the contact.
     """
-  
     def __init__(
             self, 
             name: Name | str, 
@@ -205,7 +206,7 @@ class Record:
         """
         if phone in self.phones:
             raise ValueError("this phone number has already been added")
-        
+
         phone = self._phone(phone)
         self.phones.append(phone)
 
@@ -217,14 +218,14 @@ class Record:
             phone (Phone) or try valid Str: The phone number to be removed from the contact.
         Raises:
             ValueError: If the phone number is not found in the contact's list of phone numbers.
-        Returns: 
+        Returns:
             None: This method does not return any value.
         """
-        phone = self._phone(phone) # єту строку может после райза?
+        phone = self._phone(phone)  # єту строку может после райза?
         if phone not in self.phones:
             raise ValueError(f"The phone '{phone}' is not in this record.")
         self.phones.remove(phone)
-        
+
     def change_phone(self, old_phone: Phone | str, new_phone: Phone | str) -> None:
         """
         Change a phone number in the list of phone numbers for the contact.
@@ -236,14 +237,17 @@ class Record:
             ValueError: If the old phone number is not found in the contact's list of phone numbers.
             ValueError: If the new phone number is already in contact's list of phone numbers.
         """
-        
-        if (old_phone := self._phone(old_phone)) not in self.phones: 
-            raise ValueError(f"The phone '{old_phone}' is not in this record '{self.name}'.")
+
+        if (old_phone := self._phone(old_phone)) not in self.phones:
+            raise ValueError(
+                f"The phone '{old_phone}' is not in this record '{self.name}'."
+            )
         if (new_phone := self._phone(new_phone)) in self.phones:
-            raise ValueError(f"The phone '{new_phone}' already in record '{self.name}'.")
+            raise ValueError(
+                f"The phone '{new_phone}' already in record '{self.name}'."
+            )
         inx = self.phones.index(old_phone)
         self.phones[inx] = new_phone
-        
 
     def change_email(self, email : Email) -> None:
         self.email = self._email(email)
@@ -252,8 +256,8 @@ class Record:
     def change_birthday(self, birthday: Birthday) -> None:
         self.birthday = self._birthday(birthday)
 
-
-    def days_to_birthday(self) -> int :
+        
+    def days_to_birthday(self) -> int:
         """
         Calculate the number of days remaining until the contact's next birthday.
 
@@ -264,21 +268,25 @@ class Record:
         """
         if self.birthday == None:
             raise KeyError(f"No birthday set for the contact {self.name}.")
-        
+
         today = date.today()
         try:
-            bday = self.birthday.get_date().replace(year=today.year) # дата др в этом году 
-            if today > bday : # если др уже прошло берем дату следующего(в следующем году)
-                bday= bday.replace(year=today.year+1)
+            bday = self.birthday.get_date().replace(
+                year=today.year
+            )  # дата др в этом году
+            if (
+                today > bday
+            ):  # если др уже прошло берем дату следующего(в следующем году)
+                bday = bday.replace(year=today.year + 1)
             return (bday - today).days
-        except ValueError: # исключение для високосной дати 1го дня уууу-02-29
-            exept_temp = Record(self.name, [] , today.replace(month=2, day=28).isoformat()) 
+        except ValueError:  # исключение для високосной дати 1го дня уууу-02-29
+            exept_temp = Record(
+                self.name, [], today.replace(month=2, day=28).isoformat()
+            )
             return exept_temp.days_to_birthday() + 1
-
 
     def change_address(self, address: Address) -> None:
         self.address = self._address(address)
-
 
     def __str__(self) -> str:
         # вывод телефонов с новой строки и табуляцией
@@ -294,7 +302,6 @@ class Record:
             f'\t{address_str}\n'
         )
 
-
     def __repr__(self) -> str:
         # __repr__ используется для того что бы показать как создается екземпляр
         # т.е. если выполнить эту строку в repl python будет создан такой же екземпляр,
@@ -302,7 +309,7 @@ class Record:
         # repl python
         # (встроенная в пайтон среда выполенния, которую можно вызвать просто выполнив команду python)
         return (
-            f'Record(name={self.name!r}, '
+            f"Record(name={self.name!r}, "
             f'phones=[{", ".join([ph.__repr__() for ph in self.phones])}, '
             f'email={self.email!r}, '
             f'birthday={self.birthday!r},'
@@ -323,13 +330,13 @@ class Record:
                 "address": address,
             },
         }
-          
+
 class AddressBook(UserDict):
     """
-    A class representing an address book, which is a dictionary 
+    A class representing an address book, which is a dictionary
     with record names as keys and record objects as values.
     """
-    
+
     def add_record(self, record: Record) -> None:
         """
         Add a record to the address book.
@@ -339,8 +346,8 @@ class AddressBook(UserDict):
         Raises:
             TypeError: If the given object is not an instance of the Record class.
         """
-        self[record.name.value] = record # отрабативает __setitem__ 
-    
+        self[record.name.value] = record  # отрабативает __setitem__
+
     def __getitem__(self, key: str) -> Record:
         """
         Retrieve a record from the address book by its name.
@@ -356,7 +363,7 @@ class AddressBook(UserDict):
         if record is None:
             raise KeyError(f"This name {key} isn't in Address Book")
         return record
-    
+
     def __setitem__(self, key: str, val: Record) -> None:
         """
         Add or update a record in the address book.
@@ -389,6 +396,30 @@ class AddressBook(UserDict):
             raise KeyError(f"Can't delete contact {key} isn't in Address Book")
         del self.data[key]
 
+    def groups_days_to_bd(self, input_days: str) -> list[Record]:
+        """
+
+        Display list of users which birthday is a given number of days from the current date
+
+        Returns:
+            list of records
+
+        """
+        if not input_days.isdigit():
+            raise ValueError(f"Not valid days {input_days}, please input num")
+        current_date = date.today()
+        time_delta = timedelta(days=int(input_days))
+        last_date = current_date + time_delta
+        list_records = []
+
+        for record in self.data.values():
+            birthday: date = record.birthday.get_date()
+            birthday = birthday.replace(year=current_date.year) 
+
+            if (current_date <= birthday <=last_date):
+                list_records.append(record)
+        return list_records
+
     def to_dict(self) -> dict:
         """
         Convert the address book to a dictionary.
@@ -412,7 +443,7 @@ class AddressBook(UserDict):
         """
         if not isinstance(data_json, dict):
             raise TypeError("this is not dict")
-        
+
         for name, record in data_json.items():
             self.add_record(
                 Record(name=name, 
@@ -423,9 +454,8 @@ class AddressBook(UserDict):
             )
 
     def __str__(self) -> str:
-        return '\n'.join([str(r) for r in self.values()])
-    
-    
+        return "\n".join([str(r) for r in self.values()])
+
     def search(self, search_word: str) -> list[Record]:
         """
         Search for records containing the given search word.
@@ -445,9 +475,8 @@ class AddressBook(UserDict):
                                 f'{record.address}'
                                 )
             if search_word.lower() in str_val_record.lower():
-                search_list.append(record)       
-        return search_list 
-
+                search_list.append(record)
+        return search_list
 
     def iterator(self, item_number: int) -> t.Generator[Record, int, None]:
         """
@@ -455,10 +484,10 @@ class AddressBook(UserDict):
 
         Args:
             item_number (int) > 0: The number of records to be yielded at a time.
-        
+
         Yields:
             List[Record]: A list containing a group of records.
-        
+
         Notes:
             If the given item_number is greater than the total number of records in the address book,
             all records will be yielded in one group.
@@ -466,15 +495,18 @@ class AddressBook(UserDict):
         """
         if item_number <= 0:
             raise ValueError("Item number must be greater than 0.")
-        elif item_number > len(self.data): # если количство виводов(за раз) больше чем количество записей
-            item_number = len(self.data) # виводим все
-        
+        elif item_number > len(
+            self.data
+        ):  # если количство виводов(за раз) больше чем количество записей
+            item_number = len(self.data)  # виводим все
+
         list_records = []
         for counter, record in enumerate(self.data.values(), 1):
             list_records.append(record)
-            if (not counter % item_number) or counter == len(self.data): 
+            if (not counter % item_number) or counter == len(self.data):
                 yield list_records
                 list_records = []
+
 
 class AddressBookEncoder(json.JSONEncoder):
     def default(self, obj: AddressBook | Record) -> dict[str, str | list[str]] | t.Any:
@@ -483,14 +515,8 @@ class AddressBookEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
-
-
-
-   
-
-
 
 
 

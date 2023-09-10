@@ -2,6 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
+
 from .address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
 
 
@@ -265,6 +266,22 @@ def change_handler_address(data: list[str]) -> str:
     name, address, = data
     a_book[name].change_address(address)
     return f"contact {name} has new address: {address}"
+  
+@input_error
+def delta_bday_handler(data: list[str]) -> str:
+    """
+    Get contact records with birthdays within a specified number of days.
+
+    Args:
+        data (list): A list containing the number of days.
+
+    Returns:
+        str: A formatted list of contact records with upcoming birthdays.
+    """
+    if len(data) < 1 : raise IndexError
+    days, = data
+    records = a_book.groups_days_to_bd(days)
+    return "\n".join(map(str, records))
 
 
 @input_error
@@ -319,7 +336,6 @@ def help_handler(*args) -> str:
         )
 
 def show_all(*args) -> str:
-    # тут может бить красивая формат обертка через цикл и поля рекорда
     return "\n".join([str(record)[9:] for record in a_book.values()])
 
 def hello_handler(*args) -> str:
@@ -397,6 +413,10 @@ BOT_COMMANDS = {
         ["change address"],
         "name new_address"
         ),
+    delta_bday_handler : (
+        ["delta"],
+        "delta days(num)"
+        ),    
     del_handler_phone: (
         ["del phone"], 
         "name phone(num)"
@@ -429,8 +449,10 @@ BOT_COMMANDS = {
 COMMANDS_HELP = {k.__name__:v for k,v in BOT_COMMANDS.items()}
 
 def main_contacts():
+    hello = "connected to Address Book\n"
     while True:
-        user_input = input(">>>")
+        user_input = input(f"{hello}>>>")
+        hello = ""
         if not user_input or user_input.isspace():
             continue
 
