@@ -50,13 +50,12 @@ class Name(Field):
 class Phone(Field):
     """
     Class representing the phone field in a record of the address book.
-    """
-    def __valid_phone(self, value) -> str: 
-        #TODO re +380** | 380** | 80** | 0** return +380**...
-        phone = ''.join(filter(str.isdigit, value))
-        if 9 >= len(phone) <= 15 : #псевдо проверка номера
-            raise ValueError(f"Phone number {value} isn't correct")
-        return phone
+    """ 
+    def __valid_phone(self, value) -> str:
+        phone_pattern = re.compile(r'\+380?\(?\d{2,3}\)?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|38\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|8?\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}')
+        if re.fullmatch(phone_pattern, value) is None:
+            raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380991112233"')
+        return value
 
     @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
@@ -120,6 +119,31 @@ class Birthday(Field):
         return date.fromisoformat(self.value)
 
 
+class Address(Field):
+    """
+    Class representing the address field in a record of the address book.
+    """
+
+    def __valid_address(self, value: str) -> str:
+        """
+        Validate the length of address in the input address string.
+        Args:
+            value (str): The input address string.
+        Raises:
+            ValueError: If the input address string exceeds the allowed length.
+        Returns:
+            str: The valid address string.
+        """
+        if len(value)>50:
+            raise ValueError(
+                f'Value {value} is not in correct format! Your address is too long. Make it shorter')
+        return value
+
+    @Field.value.setter
+    def value(self, value: str) -> None:
+        Field.value.fset(self, value, self.__valid_address)
+
+
 class Record:
     """
     Class representing a record in an address book.
@@ -129,19 +153,24 @@ class Record:
         phones (list): A list of phone numbers associated with the contact.
         email (Email): The email of the contact.
         birthday (Birthday): The birthday of the contact.
+        address (Address): The address of the contact.
     """
     def __init__(
-        self,
-        name: Name | str,
-        phones: list[Phone] | list[str] = [],
-        email : Email | str = None,
-        birthday: Birthday | str | None = None,
-    ) -> None:
+            self, 
+            name: Name | str, 
+            phones: list[Phone] | list[str] = [],
+            email: Email | str | None = None,
+            birthday: Birthday | str | None = None,
+            address: Address | str | None = None,
+        ) -> None:
+
         self.name = self._name(name)
         self.phones = [self._phone(phone) for phone in phones]
         self.email = None if email is None else self._email(email)
         self.birthday = None if birthday is None else self._birthday(birthday)
-
+        self.address = None if address is None else self._address(address)
+    
+        
     def _name(self, name: str | Name) -> Name:
         if not isinstance(name, Name):
             name = Name(name)
@@ -161,6 +190,11 @@ class Record:
         if not isinstance(birthday, Birthday):
             birthday = Birthday(birthday)
         return birthday
+
+    def _address(self, address: str | Address) -> Address:
+        if not isinstance(address, Address):
+            address = Address(address)
+        return address
 
     def add_phone(self, phone: Phone | str) -> None:
         """
@@ -251,18 +285,22 @@ class Record:
             )
             return exept_temp.days_to_birthday() + 1
 
+    def change_address(self, address: Address) -> None:
+        self.address = self._address(address)
+
     def __str__(self) -> str:
         # вывод телефонов с новой строки и табуляцией
         birthday_str = f'birthday: {self.birthday or "Empty"}'
         email_str = f'email: {self.email or "Empty"}'
+        address_str = f'address: {self.address or "Empty"}'
         phones_str = ", ".join([str(ph) for ph in self.phones])
         return (
             f'<Record>:\n\tname: {self.name}\n'
             f'\tphones: {phones_str or "Empty"}\n'
             f'\t{email_str}\n'
             f'\t{birthday_str}\n'
+            f'\t{address_str}\n'
         )
-
 
     def __repr__(self) -> str:
         # __repr__ используется для того что бы показать как создается екземпляр
@@ -274,22 +312,24 @@ class Record:
             f"Record(name={self.name!r}, "
             f'phones=[{", ".join([ph.__repr__() for ph in self.phones])}, '
             f'email={self.email!r}, '
-            f'birthday={self.birthday!r})'
+            f'birthday={self.birthday!r},'
+            f'address={self.address!r})'
         )
 
     def to_dict(self) -> dict[str, dict[str, list[str] | str | None]]:
         phones = [str(phone) for phone in self.phones]
         email = None if self.email is None else str(self.email)
         birthday = None if self.birthday is None else str(self.birthday)
+        address = None if self.address is None else str(self.address)
 
         return {
             str(self.name): {
                 "phones": phones,
                 "email": email,
                 "birthday": birthday,
+                "address": address,
             },
         }
-
 
 class AddressBook(UserDict):
     """
@@ -373,10 +413,10 @@ class AddressBook(UserDict):
         list_records = []
 
         for record in self.data.values():
-            birthday: date = record.birthday.get_date() # получаем дату из словаря
-            birthday = birthday.replace(year=current_date.year)  # меняем год - дата напоминания для поздравления
+            birthday: date = record.birthday.get_date()
+            birthday = birthday.replace(year=current_date.year) 
 
-            if (current_date <= birthday <=last_date):  # если др в промежутке сегодня включительно + кол-во дней
+            if (current_date <= birthday <=last_date):
                 list_records.append(record)
         return list_records
 
@@ -409,7 +449,8 @@ class AddressBook(UserDict):
                 Record(name=name, 
                        phones=record['phones'], 
                        email=record['email'], 
-                       birthday=record['birthday'] )
+                       birthday=record['birthday'],
+                       address=record['address']),
             )
 
     def __str__(self) -> str:
@@ -420,10 +461,10 @@ class AddressBook(UserDict):
         Search for records containing the given search word.
 
         Args:
-            search_word (str): The word to search in the adress book.
-
+            search_word (str): The word to search in the address book.
+        
         Returns:
-            list[Record] or []: list whith found records.
+            list[Record] or []: list with found records.
         """
         search_list = []
         for record in self.data.values():
@@ -431,6 +472,7 @@ class AddressBook(UserDict):
                                 f'{" ".join([str(ph)for ph in record.phones])}' 
                                 f'{record.email}'
                                 f'{record.birthday}'
+                                f'{record.address}'
                                 )
             if search_word.lower() in str_val_record.lower():
                 search_list.append(record)
