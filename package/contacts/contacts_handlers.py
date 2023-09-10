@@ -2,7 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-from .address_book import AddressBook, Record, Phone, AddressBookEnco
+from .address_book import AddressBook, Record, Phone, AddressBookEncoder
 file_json  = Path.cwd() / "address_book.json" 
 # TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 a_book = AddressBook() 
@@ -11,7 +11,7 @@ try:
         unpacked = json.load(file)
     a_book.from_dict(unpacked)
 except FileNotFoundError:
-    with open(file_json, "w") as fi
+    with open(file_json, "w") as file:
         json.dump({}, file)
      
 def input_error(func):

@@ -134,6 +134,7 @@ class Record:
         self,
         name: Name | str,
         phones: list[Phone] | list[str] = [],
+        email : Email | str = None,
         birthday: Birthday | str | None = None,
     ) -> None:
         self.name = self._name(name)
