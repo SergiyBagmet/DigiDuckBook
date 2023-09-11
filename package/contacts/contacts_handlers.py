@@ -5,23 +5,13 @@ from prompt_toolkit import prompt
 
 from contacts.address_book import AddressBook, Record, Phone, AddressBookEncoder
 from utils.tool_kit import RainbowLexer, get_completer
-from utils.data_json import DIR_DATA
+from utils.data_json import DIR_DATA, get_obj
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
 
-def data_json_to_ab(file_jsone: Path) -> AddressBook:
-    a_book = AddressBook() 
-    try:
-        with open(file_json, "r") as file:
-            unpacked = json.load(file)
-        a_book.from_dict(unpacked)
-    except FileNotFoundError:
-        with open(file_json, "w") as file:
-            json.dump({}, file)
-    return a_book      
-  
-a_book: AddressBook = data_json_to_ab(file_json)
+
+a_book: AddressBook  = get_obj(file_json, AddressBook)
 
 def input_error(func):
     @wraps(func) #для отображения доки/имени
