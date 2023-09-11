@@ -3,16 +3,15 @@ import re, json
 from pathlib import Path
 from prompt_toolkit import prompt
 
-from contacts.address_book import AddressBook, Record, Phone
+from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
 from utils.tool_kit import RainbowLexer, get_completer
 from utils.data_json import DIR_DATA, get_obj, BookEncoder
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
-
-
 a_book: AddressBook  = get_obj(file_json, AddressBook)
 
+  
 def input_error(func):
     @wraps(func) #для отображения доки/имени
     def wrapper(*args):
@@ -46,25 +45,38 @@ def add_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added contact.
     """
-    if len(data) <= 1: raise IndexError
-
-    if len(data) >= 4:
-        name, phone, email, birthday = data
-        record = Record(name, [phone], email, birthday)
-
-    # elif len(data) == 3:
-    # TODO я сам подумаю пока без этого
-    #     name, phone, some = data 
-    #     try:
-    #         record = Record(name, [phone], email=some)
-    #     except ValueError:    
-    #         record = Record(name, [phone], birthday=some)
-    else:
+    if len(data)>=2:
         name, phone, = data
-        record = Record(name, [phone])     
+        record = Record(name, [phone])
+    elif len(data) == 1:
+        raise IndexError
+    else :
+        record = step_input()
 
     a_book.add_record(record)
-    return f"contact {str(record)[9:]} has be added"
+    return f"contact {str(record)[9:]} has been added"
+
+def step_input() -> Record: # only for command add
+    """
+    Prompt the user to enter contact information step by step.
+
+    Returns:
+        Record: A contact record created from the entered information.
+    """
+    dict_input = {Name: False, Phone: False,
+                  Email : False, Birthday: False, Address: False}
+    counter = 0
+    while counter < len(dict_input):
+        key_class = list(dict_input.keys())[counter]
+        var = input(f"Enter {key_class.__name__.lower()} :\t")
+        try:
+            dict_input[key_class] = key_class(var)
+        except ValueError as er:
+            print(er)
+            continue
+        counter += 1
+    name, phone, email, birthday, address = dict_input.values()
+    return Record(name, [phone], email, birthday, address)
 
 @input_error
 def add_handler_phone(data : list[str]) -> str:
@@ -146,9 +158,9 @@ def add_handler_email(data: list[str]) -> str:
     name, email, = data
     record = a_book[name]
     if record.email is not None:
-        return f"this contact {name} is already have an email: {record.email}"
+        return f"this contact {name} has already have an email: {record.email}"
     record.change_email(email)
-    return f"contact {name} is added an email: {record.email}"
+    return f"contact {name} has got an email: {record.email}"
 
 
 @input_error
@@ -183,7 +195,7 @@ def add_handler_birthday(data: list[str]) -> str:
     name, birthday, = data
     record = a_book[name]
     if record.birthday is not None:
-        return f"this contact {name} is already have a date of birth: {record.birthday}"
+        return f"this contact {name} has already have a date of birth: {record.birthday}"
     record.change_birthday(birthday)
     return f"contact {name} is added a date of birth: {record.birthday}"
     
@@ -220,11 +232,57 @@ def handler_days_to_birthday(data: list[str]) -> str:
     return f"{days} days left until {name}'s birthday"  
 
 @input_error
+def add_handler_address(data: list[str]) -> str:
+    """
+    Add an address to an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the added address.
+    """
+    if len(data) <= 1 : raise IndexError
+    name, address, = data
+    record = a_book[name]
+    if record.address is not None:
+        return f"this contact {name} has already have an address: {record.address}"
+    record.change_address(address)
+    return f"contact {name} has got an address: {record.address}"
+
+
+@input_error
+def change_handler_address(data: list[str]) -> str:
+    """
+    Change the address of an existing contact.
+
+    Args:
+        data (list): A list containing contact information.
+
+    Returns:
+        str: A confirmation message for the changed address.
+    """
+    if len(data) <= 1: raise IndexError
+    name, address, = data
+    a_book[name].change_address(address)
+    return f"contact {name} has new address: {address}"
+  
+@input_error
 def delta_bday_handler(data: list[str]) -> str:
+    """
+    Get contact records with birthdays within a specified number of days.
+
+    Args:
+        data (list): A list containing the number of days.
+
+    Returns:
+        str: A formatted list of contact records with upcoming birthdays.
+    """
     if len(data) < 1 : raise IndexError
     days, = data
     records = a_book.groups_days_to_bd(days)
     return "\n".join(map(str, records))
+
 
 @input_error
 def search_handler(data: list[str]) -> str:
@@ -278,7 +336,6 @@ def help_handler(*args) -> str:
         )
 
 def show_all(*args) -> str:
-    # тут может бить красивая формат обертка через цикл и поля рекорда
     return "\n".join([str(record)[9:] for record in a_book.values()])
 
 def hello_handler(*args) -> str:
@@ -347,9 +404,16 @@ COMMANDS_AB = {
         ),
     handler_days_to_birthday: (
         ["days"], 
-        "name"
+        "name"),
+    add_handler_address: (
+        ["address"],
+        "name address"
         ),
-    delta_bday_handler :(
+    change_handler_email: (
+        ["change address"],
+        "name new_address"
+        ),
+    delta_bday_handler : (
         ["delta"],
         "delta days(num)"
         ),    
@@ -388,6 +452,7 @@ COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 Completer = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
+    hello = "connected to Address Book\n"
     while True:
         # user_input = input(">>>")
         user_input = prompt(
@@ -395,6 +460,7 @@ def main_contacts():
             completer=Completer,                
             lexer=RainbowLexer("#0000FF")               
             )
+
         if not user_input or user_input.isspace():
             continue
 
