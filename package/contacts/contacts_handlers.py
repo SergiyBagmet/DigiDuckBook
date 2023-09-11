@@ -1,22 +1,17 @@
 from functools import wraps
 import re, json
 from pathlib import Path
+from prompt_toolkit import prompt
+
+from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
 
 
-from .address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
+file_json  = Path(DIR_DATA) / "address_book.json" 
+a_book: AddressBook  = get_obj(file_json, AddressBook)
 
-
-file_json  = Path.cwd() / "address_book.json" 
-# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
-a_book = AddressBook() 
-try:
-    with open(file_json, "r") as file:
-        unpacked = json.load(file)
-    a_book.from_dict(unpacked)
-except FileNotFoundError:
-    with open(file_json, "w") as file:
-        json.dump({}, file)
-     
+  
 def input_error(func):
     @wraps(func) #для отображения доки/имени
     def wrapper(*args):
@@ -348,7 +343,7 @@ def hello_handler(*args) -> str:
 
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
-        json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
+        json.dump(a_book, file, cls=BookEncoder, sort_keys=True, indent=4)
     return "\nAddress book has cloused\n"
 
 def unknown_command(*args) -> str:
@@ -366,14 +361,14 @@ def command_parser(row_str: str):
     """
     row_str = re.sub(r'\s+', ' ', row_str) 
     elements = row_str.strip().split(" ")
-    for key, value in BOT_COMMANDS.items():
+    for key, value in COMMANDS_AB.items():
         if elements[0].lower() in value[0]:
             return key, elements[1:]
         elif " ".join(elements[:2]).lower() in value[0]: 
             return key, elements[2:] 
     return unknown_command, None
 
-BOT_COMMANDS = {
+COMMANDS_AB = {
     # при командах (с одинаковими первими словами)"add" & "add phone" работает какую первую найдет
     hello_handler: (
         ["hello"],
@@ -451,13 +446,21 @@ BOT_COMMANDS = {
         ),
 }
 
-COMMANDS_HELP = {k.__name__:v for k,v in BOT_COMMANDS.items()}
+COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
+
+
+Completer = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
     hello = "connected to Address Book\n"
     while True:
-        user_input = input(f"{hello}>>>")
-        hello = ""
+        # user_input = input(">>>")
+        user_input = prompt(
+            message="\nAddress Book >>>",
+            completer=Completer,                
+            lexer=RainbowLexer("#0000FF")               
+            )
+
         if not user_input or user_input.isspace():
             continue
 

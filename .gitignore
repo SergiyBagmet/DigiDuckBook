@@ -160,5 +160,4 @@ cython_debug/
 .idea/
 
 #   (contacts/notes).json
-/address_book.json
-/notes_book.json
+data/*

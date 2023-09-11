@@ -1,6 +1,9 @@
-from contacts.contacts_handlers import main_contacts
 import typing as t
+from prompt_toolkit import prompt
 
+
+from contacts.contacts_handlers import main_contacts
+from utils.tool_kit import RainbowLexer, get_completer
 
 
 
@@ -8,12 +11,12 @@ def bot_unk() -> str:
     return'Unknown command'
 
 def bot_help() -> str:
-    pass
+    return 'Here could be your advertisement'
 
 def bot_exit() -> str:
     return "Good bye!"
 
-COMMANDS_DIGI_DUCK : dict[t.Callable, list[str] ] = {
+COMMANDS_MAIN_BOT : dict[t.Callable, list[str] ] = {
     main_contacts : ["1", "ab", "contacts", "adress book"],
     # main_notes : ["2", "notes", "note book"],
     # main_sort : ["3","sort","folder", "dir"],
@@ -22,19 +25,26 @@ COMMANDS_DIGI_DUCK : dict[t.Callable, list[str] ] = {
     
 }
 
-def bot_cm_parser(input_str :str) -> t.Callable | None:
+
+def bot_cm_parser(input_str :str) -> t.Callable :
     """
     TODO doc
     """
-    for func, commands in COMMANDS_DIGI_DUCK.items():
+    for func, commands in COMMANDS_MAIN_BOT.items():
         if input_str.strip().lower() in commands:
             return func
     return bot_unk
 
+Completer = get_completer(COMMANDS_MAIN_BOT.values())
 
 def main_digi_duck() -> None:
     while True:
-        user_input = input("Hello this is Digi Duck menu >>>")
+        # user_input = input("Digi Duck menu >>>")
+        user_input = prompt(
+            message="\nDigi Duck menu >>>",
+            completer=Completer,                
+            lexer=RainbowLexer("#008000")               
+            )
         if not user_input or user_input.isspace():
             continue
        
