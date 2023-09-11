@@ -2,8 +2,7 @@ from functools import wraps
 import re, json
 from pathlib import Path
 
-
-from .address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
+from address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
 
 
 file_json  = Path.cwd() / "address_book.json" 
@@ -349,7 +348,7 @@ def hello_handler(*args) -> str:
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
         json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
-    return "\nAddress book has cloused\n"
+    return "\nAddress book has been closed\n"
 
 def unknown_command(*args) -> str:
     return 'Unknown command'
@@ -462,15 +461,15 @@ def main_contacts():
             continue
 
         func_handler, data = command_parser(user_input)
-        
+
         if func_handler == show_page:
             for page in func_handler(data):
                 print(page)
-            continue    
+            continue
 
-        bot_message = func_handler(data)    
+        bot_message = func_handler(data)
         print(bot_message)
-        
+
         if func_handler == exit_handler:
             break
         

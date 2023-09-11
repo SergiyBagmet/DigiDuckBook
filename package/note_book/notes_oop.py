@@ -12,7 +12,7 @@ class FieldNotes:
 
     def __valid_value(self, value) -> None:
         if not isinstance(value , str) :
-            raise TypeError(f'Value {value} not corect have to be str')
+            raise TypeError(f'Value {value} not correct, you should enter a string')
         
     @property
     def value(self) -> str:
@@ -112,7 +112,7 @@ class RecordNote:
             body = NoteBody(body)
         return body    
 
-    def add_notetag(self, note_tag: NoteTag | str):
+    def add_note_tag(self, note_tag: NoteTag | str):
         """
         Add a new notetag to the list of notetag for the note.
         Args:
@@ -124,7 +124,7 @@ class RecordNote:
             raise ValueError("This notetag has already been added")
         self.note_tags.append(note_tag)
 
-    def remove_notetag(self, note_tag: NoteTag | str) -> None:
+    def remove_note_tag(self, note_tag: NoteTag | str) -> None:
         """
         Remove a notetag from the list of notetag for the note.
 
@@ -135,10 +135,16 @@ class RecordNote:
         Returns: 
             None: This method does not return any value.
         """
-        try:
-            self.note_tags.remove(self._tag(note_tag))
-        except ValueError:
-            raise ValueError(f"phone: {note_tag} not exists")
+
+        note_tag = self._tag(note_tag)
+        if note_tag not in self.note_tags:
+            raise ValueError(f"The note tag '{note_tag}' is not in this notes book.")
+        self.note_tags.remove(note_tag)
+
+        # try:
+        #     self.note_tags.remove(self._tag(note_tag))
+        # except ValueError:
+        #     raise ValueError(f"note tag: {note_tag} not exists")
 
     
     def __str__(self) -> str:
@@ -231,6 +237,42 @@ class NotesBook(UserDict):
                 RecordNote(note_id=key, note_tags=value['Tags'], note_body=value['Note'])
             )    
 
+    def notes_iterator(self, note_item_number: int) -> t.Generator[RecordNote, int, None]:
+        """
+        Iterate through the records in the notes book and yield groups of note records.
+
+        Args:
+            item_number (int) > 0: The number of note records to be yielded at a time.
+
+        Yields:
+            List[Record]: A list containing a group of note records.
+
+        Notes:
+            If the given item_number is greater than the total number of note records in the notes book,
+            all records will be yielded in one group.
+
+        """
+        if note_item_number <= 0:
+            raise ValueError("Item number must be greater than 0.")
+        elif note_item_number > len(
+            self.data
+        ):
+            note_item_number = len(self.data)
+
+        list_note_records = []
+        for counter, note_record in enumerate(self.data.values(), 1):
+            list_note_records.append(note_record)
+            if (not counter % note_item_number) or counter == len(self.data):
+                yield list_note_records
+                list_note_records = []
+
+
+class NotesBookEncoder(json.JSONEncoder):
+    def default(self, obj: NotesBook | RecordNote) -> dict[str, str | list[str]] | t.Any:
+        if isinstance(obj, (NotesBook, RecordNote)):
+            return obj.to_dict()
+        return super().default(obj)
+
 
 if __name__ == "__main__":
     tag_1 = NoteTag("#inc")
@@ -250,11 +292,11 @@ if __name__ == "__main__":
 
    
 
-    rec_1.remove_notetag("#inc")
+    rec_1.remove_note_tag("#inc")
     
     tag_12 = NoteTag("#additional")
     
-    rec_2.add_notetag(tag_3)
+    rec_2.add_note_tag(tag_3)
 
     # print(rec_1, rec_2)
 
