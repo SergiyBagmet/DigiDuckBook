@@ -7,6 +7,9 @@ from prompt_toolkit.completion import NestedCompleter
 
 
 class RainbowLexer(Lexer):
+    # def __init__(self, color: str) -> None:
+    #     super().__init__()
+    #     self.color = color
     """
     Lexer class for syntax highlighting with rainbow colors.
 

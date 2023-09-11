@@ -3,20 +3,26 @@ import re, json
 from pathlib import Path
 from prompt_toolkit import prompt
 
-from .address_book import AddressBook, Record, Phone, AddressBookEncoder
-# from ..tool_kit import RainbowLexer, get_completer
+from contacts.address_book import AddressBook, Record, Phone, AddressBookEncoder
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.dir_data import DIR_DATA
 
-file_json  = Path.cwd() / "address_book.json" 
-# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
-a_book = AddressBook() 
-try:
-    with open(file_json, "r") as file:
-        unpacked = json.load(file)
-    a_book.from_dict(unpacked)
-except FileNotFoundError:
-    with open(file_json, "w") as file:
-        json.dump({}, file)
-     
+
+file_json  = Path(DIR_DATA) / "address_book.json" 
+
+def data_json_to_ab(file_jsone: Path) -> AddressBook:
+    a_book = AddressBook() 
+    try:
+        with open(file_json, "r") as file:
+            unpacked = json.load(file)
+        a_book.from_dict(unpacked)
+    except FileNotFoundError:
+        with open(file_json, "w") as file:
+            json.dump({}, file)
+    return a_book      
+  
+a_book: AddressBook = data_json_to_ab(file_json)
+
 def input_error(func):
     @wraps(func) #для отображения доки/имени
     def wrapper(*args):
@@ -390,6 +396,7 @@ COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 
 
 def main_contacts():
+
     while True:
         user_input = input(">>>")
         if not user_input or user_input.isspace():

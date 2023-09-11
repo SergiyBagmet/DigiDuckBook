@@ -1,8 +1,9 @@
 import typing as t
 from prompt_toolkit import prompt
 
+
 from contacts.contacts_handlers import main_contacts
-from tool_kit import RainbowLexer, get_completer
+from utils.tool_kit import RainbowLexer, get_completer
 
 
 

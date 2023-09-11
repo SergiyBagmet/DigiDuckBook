@@ -467,6 +467,7 @@ class AddressBook(UserDict):
 
 
 class AddressBookEncoder(json.JSONEncoder):
+    #TODO один на всех в утилс
     def default(self, obj: AddressBook | Record) -> dict[str, str | list[str]] | t.Any:
         if isinstance(obj, (AddressBook, Record)):
             return obj.to_dict()
