@@ -25,8 +25,7 @@ for c, t in zip(CYRILLIC_SYMBOLS, TRANSLATION):
 
 def normalize(name: str) -> str:
     """
-    транлитерация кирилици
-    замена всего кроме латинского алфавита и чисел на _
+    TODO
     """
     t_name = name.translate(TRANS)
     t_name = re.sub(r'\W', '_', t_name)
@@ -35,8 +34,7 @@ def normalize(name: str) -> str:
 
 def new_path_name(ex: Path) -> Path:
     """
-    переименование по транслиту + "_"
-    возврат нового пути(../файл.суф)
+    TODO
     """
     new_name = normalize(ex.stem) + ex.suffix  # новое имя + суфикс
     new_ex = ex.rename(ex.parent / new_name)  # переименование файлов + присваеваем новий путь
@@ -45,8 +43,7 @@ def new_path_name(ex: Path) -> Path:
 
 def get_new_folder_name(ex: Path) -> str:
     """
-    получаем имя для новой папки(по расширению файла)
-    соответствующей файловой группе
+    TODO
     """
     name_dir = ""
     for key, val in FILE_EXTENSIONS.items():
@@ -61,19 +58,16 @@ def get_new_folder_name(ex: Path) -> str:
 
 def replace_file_new_dir(ex: Path, name_dir: str, main_path: Path) -> Path:
     """
-    сознаем новую папку если такой нет
-    перенос файла -> возврат нового пути
+    TODO
     """
     new_dir_path = main_path / name_dir  # путь к новой папке для ее создание и переноса файлов
     new_dir_path.mkdir(exist_ok=True)  # создаем новую папку если такой нет
     new_ex_path = ex.replace(new_dir_path / ex.name)  # перенос файлов в папки по категориям
     return new_ex_path
 
-
 def extract_archive(archive_path: Path, del_archive=True):
     """
-    разархивируем архив в папку с именем архива
-    с флагом на удаление архива + ловим ошибку
+    TODO
     """
     target_dir = archive_path.parent / archive_path.stem  # путь для созданием папки с именем архива
     target_dir.mkdir(exist_ok=True)  # создаем папку для архива
@@ -86,13 +80,9 @@ def extract_archive(archive_path: Path, del_archive=True):
     except shutil.ReadError:
         print(f"Архив - {archive_path.stem} не распакован\tнеизвестное расширение({archive_path.suffix})")
 
-
-
-
 def sort_folder(path: Path, main_path: Path, my_dict_files=None) -> dict:
     """
-    основной рекурсивний проход
-    всех папок и файлов
+    TODO
     """
     for item in path.iterdir():
         if item.is_file():
@@ -124,10 +114,17 @@ def sort_folder(path: Path, main_path: Path, my_dict_files=None) -> dict:
 
     return my_dict_files
 
+
 def get_set_keys(norm_dict: dict) -> set:
+    """
+    TODO
+    """
     return set(chain.from_iterable(norm_dict.values()))
 
 def dict_normalize(my_dict_files: dict[str, list[tuple[str]]], val="file", res_dict: dict | None=None):
+    """
+    TODO
+    """
     if res_dict is None : res_dict = {}
     if val == "file":
         i = 0
@@ -139,39 +136,64 @@ def dict_normalize(my_dict_files: dict[str, list[tuple[str]]], val="file", res_d
     return res_dict    
 
 
-def show_bot_ex(*args) -> str:
-    return f"data bot kholege extension :\n{' | '.join(get_set_keys(FILE_EXTENSIONS))}"
-
-def show_sort_file(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
+def show_sort_files(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
+    """
+    TODO
+    """
     res_list = []
     for folder, files in dict_normalize(my_dict_files_ext, val="file").items():
         res_list.append("{:<10}: {}".format(folder, ', '.join(files)))
-    return "\n".join(res_list)    
+    sep = '\n\t'
+    return f"\nlist of files in a sorted directory by category:\n\n\t{f'{sep}'.join(res_list)}"    
 
-def show_knolege_ex(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
-    pass
+def show_knolege_ext(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
+    """
+    TODO
+    """
+    bot_ext: set = get_set_keys(FILE_EXTENSIONS) 
+    sort_ext: set  = get_set_keys(dict_normalize(my_dict_files_ext, val="ext"))
+    know_ext = bot_ext.intersection(sort_ext)
+    return f"\nList of all known extensions in a sorted directory:\n \
+            \n\t{' | '.join(know_ext)}"
+
+def show_unknow_ext(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
+    """
+    TODO
+    """
+    bot_ext: set = get_set_keys(FILE_EXTENSIONS) 
+    sort_ext: set  = get_set_keys(dict_normalize(my_dict_files_ext, val="ext"))
+    know_ext = bot_ext.intersection(sort_ext)
+    unknow_ext = sort_ext.difference(know_ext)
+    return f"\nList of all extensions not known to this script:\n \
+            \n\t{' | '.join(unknow_ext)}"
+
+def show_bot_ext(*args) -> str:
+    return f"data bot kholege extension :\n{' | '.join(get_set_keys(FILE_EXTENSIONS))}"
 
 def sort_unk_command(*args) -> str:
-    return 'Unknown command'
+    return 'Unknown command\n'
 
 def sort_exit(*args) -> str:
     return "change to menu\n\n"
 
+def sort_help(*args) -> str:
+    pass
 
 SORT_COMMANDS = {
-    show_bot_ex : ["bot ext", "data", "bot extensions",],
-    sort_exit : ["menu", ],
-    show_sort_file : ["show file", "file" ],
-    show_knolege_ex : ["show ext", "ext", "my ext", "extensions", "ext"],
-    # show_unknow_ex : [],
+    show_bot_ext : ["bot ext", "data", "bot extensions",],
+    sort_exit : ["menu", "back", "fin",],
+    show_sort_files : ["show file", "file" ],
+    show_knolege_ext : ["show ext", "ext", "my ext", "extensions", "know"],
+    show_unknow_ext : ["unk", "unknown", "unk ext",],
+    sort_help :["help"]
 }
 
 def parser_cm(user_input: str):
     """
     TODO
     """
-    for func, com in SORT_COMMANDS.items():
-        if user_input.strip().lower() in com:
+    for func, comm in SORT_COMMANDS.items():
+        if user_input.strip().lower() in comm:
             return func
     return sort_unk_command   
 
@@ -179,17 +201,18 @@ def sort_main():
     """
     TODO
     """  
-    path_input = input("Enter full path to you dir, will be sort or exit\n>>>")
+    path_input = input("\nEnter full path to you dir, will be sort or menu\n\n>>>")
     if Path(path_input).is_dir():
         path = Path(path_input)
         dir_data: dict[str, list[tuple[str]]] = sort_folder(path, path)
-
+        print(f"\nYour folder {path.stem} has been sorted\n\n")
         while True:
-            user_input = input(">>>")
+            user_input = input("\n>>>")
             if not user_input or user_input.isspace():
                 continue
-            func = parser_cm(user_input)  
-            print(func(dir_data))
+
+            func = parser_cm(user_input)
+            print(func(dir_data)) 
 
             if func == sort_exit:
                 break
