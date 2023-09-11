@@ -1,8 +1,11 @@
 from functools import wraps
 import re, json
 from pathlib import Path
+from prompt_toolkit import prompt
 
 from .address_book import AddressBook, Record, Phone, AddressBookEncoder
+# from ..tool_kit import RainbowLexer, get_completer
+
 file_json  = Path.cwd() / "address_book.json" 
 # TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 a_book = AddressBook() 
@@ -305,14 +308,14 @@ def command_parser(row_str: str):
     """
     row_str = re.sub(r'\s+', ' ', row_str) 
     elements = row_str.strip().split(" ")
-    for key, value in BOT_COMMANDS.items():
+    for key, value in COMMANDS_AB.items():
         if elements[0].lower() in value[0]:
             return key, elements[1:]
         elif " ".join(elements[:2]).lower() in value[0]: 
             return key, elements[2:] 
     return unknown_command, None
 
-BOT_COMMANDS = {
+COMMANDS_AB = {
     # при командах (с одинаковими первими словами)"add" & "add phone" работает какую первую найдет
     hello_handler: (
         ["hello"],
@@ -383,7 +386,8 @@ BOT_COMMANDS = {
         ),
 }
 
-COMMANDS_HELP = {k.__name__:v for k,v in BOT_COMMANDS.items()}
+COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
+
 
 def main_contacts():
     while True:
