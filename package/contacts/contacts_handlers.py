@@ -3,9 +3,9 @@ import re, json
 from pathlib import Path
 from prompt_toolkit import prompt
 
-from contacts.address_book import AddressBook, Record, Phone, AddressBookEncoder
+from contacts.address_book import AddressBook, Record, Phone
 from utils.tool_kit import RainbowLexer, get_completer
-from utils.data_json import DIR_DATA, get_obj
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
@@ -286,7 +286,7 @@ def hello_handler(*args) -> str:
 
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
-        json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
+        json.dump(a_book, file, cls=BookEncoder, sort_keys=True, indent=4)
     return "\nAddress book has cloused\n"
 
 def unknown_command(*args) -> str:

@@ -1,5 +1,5 @@
 from collections import UserDict
-import json, re
+import re
 from datetime import date, timedelta
 import typing as t
 
@@ -464,15 +464,6 @@ class AddressBook(UserDict):
             if (not counter % item_number) or counter == len(self.data):
                 yield list_records
                 list_records = []
-
-
-class AddressBookEncoder(json.JSONEncoder):
-    #TODO один на всех в утилс
-    def default(self, obj: AddressBook | Record) -> dict[str, str | list[str]] | t.Any:
-        if isinstance(obj, (AddressBook, Record)):
-            return obj.to_dict()
-        return super().default(obj)
-
 
 if __name__ == "__main__":
     pass
