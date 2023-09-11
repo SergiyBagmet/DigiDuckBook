@@ -1,7 +1,8 @@
 from pathlib import Path
+from itertools import chain
 import shutil
 import re
-print('Hello')
+
 
 # известние файли для сортировки
 FILE_EXTENSIONS = {
@@ -11,8 +12,8 @@ FILE_EXTENSIONS = {
     'audio': {'.mp3', '.ogg', '.wav', '.amr'},
     'archives': {'.zip', '.gz', '.tar'}
 }
-my_extens = set()  # сет для записи всех имеющихся расширений в папке
-# константи для переименования файлов
+
+
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
 TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
                "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
@@ -58,7 +59,7 @@ def get_new_folder_name(ex: Path) -> str:
     return name_dir
 
 
-def replace_file_new_dir(ex: Path, name_dir: str):
+def replace_file_new_dir(ex: Path, name_dir: str, main_path: Path) -> Path:
     """
     сознаем новую папку если такой нет
     перенос файла -> возврат нового пути
@@ -86,20 +87,9 @@ def extract_archive(archive_path: Path, del_archive=True):
         print(f"Архив - {archive_path.stem} не распакован\tнеизвестное расширение({archive_path.suffix})")
 
 
-def input_path() -> Path:
-    """
-    инпут пути к папке
-    проверка на валидность(существует+папка)
-    """
-    while True:
-        path = Path(input("Введите полний путь к папке которую хотите отсортировать:\n"))
-        if path.exists() and path.is_dir():
-            return path
-        else:
-            print("введений вами путь не существует или не является папкой\n")
 
 
-def directory_tree(path: Path, my_dict_files=None):
+def sort_folder(path: Path, main_path: Path, my_dict_files=None) -> dict:
     """
     основной рекурсивний проход
     всех папок и файлов
@@ -111,73 +101,104 @@ def directory_tree(path: Path, my_dict_files=None):
 
             name_dir = get_new_folder_name(item)  # имя для новой папки
 
-            item = replace_file_new_dir(item, name_dir)  # создание папок + перемещение файлов
+            item = replace_file_new_dir(item, name_dir, main_path)  # создание папок + перемещение файлов
 
             if name_dir == "archives":  # если категория ахиви(файл можно разпаковать TODO list from shatil)
                 extract_archive(item)  # разпаковка + по умолчанию флаг на удаление
 
             # get_data: set of ex +  my_dict_files-> категория : [файли] TODO отдельная функция?
-            my_extens.add(item.suffix)  # заполнение сета расширений
-            if my_dict_files is None:  my_dict_files = {}  # создаем словарь на первом заходе
+            # my_extens.add(item.suffix)  # заполнение сета расширений
+            if my_dict_files is None:  my_dict_files : dict = {}  # создаем словарь на первом заходе
+            # sep_name_sufix = "".join(item.stem, item.suffix)
             if name_dir not in my_dict_files:  # если нет ключа создаем ключ:спиок
-                my_dict_files[name_dir] = [item.stem]
+                my_dict_files[name_dir] = [(item.stem, item.suffix)] 
             else:
-                my_dict_files[name_dir].append(item.stem)
+                my_dict_files[name_dir].append((item.stem, item.suffix))
 
 
         elif item.is_dir() and (item.name not in FILE_EXTENSIONS):  # проверка на папку и она не из наших ключей
-
-            my_dict_files = directory_tree(path / item.name,
-                                           my_dict_files)  # рекурсивний заход + my_dict_files-> категория : [файли]
+            my_dict_files = sort_folder(path / item.name, main_path, my_dict_files)  # рекурсивний заход + my_dict_files-> категория : [файли]
 
             if not any(item.iterdir()):  # проверка на пустую папку
                 item.rmdir()  # удаляем папку(пустую)
 
     return my_dict_files
 
+def bot_ext() -> set:
+    return set(chain.from_iterable(FILE_EXTENSIONS.values()))
 
-def main():
-    while True:
+def get_dict(my_dict_files: dict[str, list[tuple[str, str]]], val="file", res_dict: dict | None=None):
+    if res_dict is None : res_dict = {}
+    if val == "file":
+        i = 0
+    elif val == "ext":
+        i = 1
 
-        path = input_path()
-        global main_path  # TODO найти другой способ
-        main_path = path  # путь к нашей папке для создания нових
+    for folder, list_tupl_file_ex in my_dict_files.items():
+        res_dict | {folder : list(map(lambda x: x[i], list_tupl_file_ex))}
+    return res_dict    
+                
+def show_bot_ex(*args) -> str:
+    return f"data bot kholege extension :\n{' | '.join(bot_ext())}"
 
-        # получаем сет всех известих(скрипту) расширений из константного словаря
-        all_extens = set()
-        for ext in FILE_EXTENSIONS.values():
-            all_extens.update(ext)
+def show_sort_file(my_dict_files: dict[str, list[tuple[str, str]]]) -> str:
+    res_list = []
+    for folder, list_tupl_file_ex in my_dict_files.items():
+        file_names = ", ".join(list(map(lambda x: x[0], list_tupl_file_ex)))
+        res_list.append("{:<10}: {}".format(folder, file_names))
+    return "\n".join(res_list)    
 
-        # my_dict_files = {} # словарь для записи -  категория : [файли]
-        my_dict_files = directory_tree(path)  # визов рекурсивного прохода
+def show_knolege_ex(my_dict_files: dict[str, list[tuple[str, str]]]) -> str:
+    pass
 
-        print("\nсписок файлов в сортированной дериктории  по категориям :\n")
-        for key, val in my_dict_files.items():
-            val_str = ", ".join(val)
-            print("{:<10}: {}".format(key, val_str))
+def sort_unk_command(*args) -> str:
+    return 'Unknown command'
 
-        print("\nПеречень всех известних расширений в сортированной директории :\n")
-        know_extens = all_extens.intersection(my_extens)
-        print("\t".join(know_extens))
-
-        print("\nПеречень всех расширений не известних данному скрипту :\n")
-        n_know_extens = my_extens.difference(know_extens)
-        print("\t".join(n_know_extens))
-
-        i = '0'
-        while i != 'Continue.' and i != 'Back.' and i != 'End.':
-            i = input("Введите\n'Continue.' - чтобы продолжить\n'Back.' - чтобы вернуться вернуться в главное меню\n'End.' - чтобы закончить: \n")
-            if i != 'Continue.' and i != 'Back.' and i != 'End.':
-                print("Неправильно введенная команда")
-
-        if i == 'Continue.':
-            continue
-        elif i == 'Back.':
-            pass
-        else:
-            break
+def sort_exit(*args) -> str:
+    return "change to menu\n\n"
 
 
+SORT_COMMANDS = {
+    show_bot_ex : ["bot ext", "data", "bot extensions",],
+    sort_exit : ["menu", ],
+    show_sort_file : ["show file", "file" ],
+    show_knolege_ex : ["show ext", "ext", "my ext", "extensions", "ext"],
+    # show_unknow_ex : [],
+}
+
+def parser_cm(user_input: str):
+    """
+    TODO
+    """
+    for func, com in SORT_COMMANDS.items():
+        if user_input.strip().lower() in com:
+            return func
+    return sort_unk_command   
+
+def sort_main():
+    """
+    TODO
+    """  
+    path_input = input("Enter full path to you dir, will be sort or exit\n>>>")
+    if Path(path_input).is_dir():
+        path = Path(path_input)
+        dir_data: dict = sort_folder(path, path)
+
+        while True:
+            user_input = input(">>>")
+            if not user_input or user_input.isspace():
+                continue
+            func = parser_cm(user_input)  
+            print(func(dir_data))
+
+            if func == sort_exit:
+                break
+
+    elif path_input in SORT_COMMANDS.get(sort_exit):
+        print(sort_exit())           
+    else:
+        print("not corect path")
+        sort_main()
 
 if __name__ == "__main__":
-    main()
+    sort_main()
