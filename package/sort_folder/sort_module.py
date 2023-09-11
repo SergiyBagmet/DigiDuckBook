@@ -124,10 +124,10 @@ def sort_folder(path: Path, main_path: Path, my_dict_files=None) -> dict:
 
     return my_dict_files
 
-def bot_ext() -> set:
-    return set(chain.from_iterable(FILE_EXTENSIONS.values()))
+def get_set_keys(norm_dict: dict) -> set:
+    return set(chain.from_iterable(norm_dict.values()))
 
-def get_dict(my_dict_files: dict[str, list[tuple[str, str]]], val="file", res_dict: dict | None=None):
+def dict_normalize(my_dict_files: dict[str, list[tuple[str]]], val="file", res_dict: dict | None=None):
     if res_dict is None : res_dict = {}
     if val == "file":
         i = 0
@@ -135,20 +135,20 @@ def get_dict(my_dict_files: dict[str, list[tuple[str, str]]], val="file", res_di
         i = 1
 
     for folder, list_tupl_file_ex in my_dict_files.items():
-        res_dict | {folder : list(map(lambda x: x[i], list_tupl_file_ex))}
+        res_dict.update({folder : list(map(lambda x: x[i], list_tupl_file_ex))})
     return res_dict    
-                
-def show_bot_ex(*args) -> str:
-    return f"data bot kholege extension :\n{' | '.join(bot_ext())}"
 
-def show_sort_file(my_dict_files: dict[str, list[tuple[str, str]]]) -> str:
+
+def show_bot_ex(*args) -> str:
+    return f"data bot kholege extension :\n{' | '.join(get_set_keys(FILE_EXTENSIONS))}"
+
+def show_sort_file(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
     res_list = []
-    for folder, list_tupl_file_ex in my_dict_files.items():
-        file_names = ", ".join(list(map(lambda x: x[0], list_tupl_file_ex)))
-        res_list.append("{:<10}: {}".format(folder, file_names))
+    for folder, files in dict_normalize(my_dict_files_ext, val="file").items():
+        res_list.append("{:<10}: {}".format(folder, ', '.join(files)))
     return "\n".join(res_list)    
 
-def show_knolege_ex(my_dict_files: dict[str, list[tuple[str, str]]]) -> str:
+def show_knolege_ex(my_dict_files_ext: dict[str, list[tuple[str]]]) -> str:
     pass
 
 def sort_unk_command(*args) -> str:
@@ -182,7 +182,7 @@ def sort_main():
     path_input = input("Enter full path to you dir, will be sort or exit\n>>>")
     if Path(path_input).is_dir():
         path = Path(path_input)
-        dir_data: dict = sort_folder(path, path)
+        dir_data: dict[str, list[tuple[str]]] = sort_folder(path, path)
 
         while True:
             user_input = input(">>>")
