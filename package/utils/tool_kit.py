@@ -7,9 +7,9 @@ from prompt_toolkit.completion import NestedCompleter
 
 
 class RainbowLexer(Lexer):
-    # def __init__(self, color: str) -> None:
-    #     super().__init__()
-    #     self.color = color
+    def __init__(self, color: str) -> None:
+        super().__init__()
+        self.color = color
     """
     Lexer class for syntax highlighting with rainbow colors.
 
@@ -35,7 +35,7 @@ class RainbowLexer(Lexer):
         Returns:
             Callable: A callable object for applying colors to lines in the document.
         """
-        colors = list(sorted({"Teal": "#008080"}, key=NAMED_COLORS.get))
+        colors = list(sorted({self.color: self.color}, key=NAMED_COLORS.get))
 
         def get_line(lineno):
             return [

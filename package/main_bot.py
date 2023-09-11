@@ -24,7 +24,7 @@ COMMANDS_MAIN_BOT : dict[t.Callable, list[str] ] = {
     bot_exit : ["good bye", "close", "exit"],
     
 }
-Completer = get_completer(COMMANDS_MAIN_BOT.values())
+
 
 def bot_cm_parser(input_str :str) -> t.Callable :
     """
@@ -35,14 +35,15 @@ def bot_cm_parser(input_str :str) -> t.Callable :
             return func
     return bot_unk
 
+Completer = get_completer(COMMANDS_MAIN_BOT.values())
 
 def main_digi_duck() -> None:
     while True:
-        # user_input = input("Hello this is Digi Duck menu >>>")
+        # user_input = input("Digi Duck menu >>>")
         user_input = prompt(
-            message="Hello this is Digi Duck menu >>>",
+            message="\nDigi Duck menu >>>",
             completer=Completer,                
-            lexer=RainbowLexer()               
+            lexer=RainbowLexer("#008000")               
             )
         if not user_input or user_input.isspace():
             continue

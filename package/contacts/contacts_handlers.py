@@ -5,7 +5,7 @@ from prompt_toolkit import prompt
 
 from contacts.address_book import AddressBook, Record, Phone, AddressBookEncoder
 from utils.tool_kit import RainbowLexer, get_completer
-from utils.dir_data import DIR_DATA
+from utils.data_json import DIR_DATA
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
@@ -395,10 +395,16 @@ COMMANDS_AB = {
 COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 
 
-def main_contacts():
+Completer = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
+def main_contacts():
     while True:
-        user_input = input(">>>")
+        # user_input = input(">>>")
+        user_input = prompt(
+            message="\nAddress Book >>>",
+            completer=Completer,                
+            lexer=RainbowLexer("#0000FF")               
+            )
         if not user_input or user_input.isspace():
             continue
 
