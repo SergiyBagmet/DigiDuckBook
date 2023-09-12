@@ -58,7 +58,7 @@ def add_note_record_handler(data: list[str]) -> str:
         record_note = step_note_input()
 
     n_book.add_note_record(record_note)
-    return f"Note {str(record_note)[9:]} has been added"
+    return f"Note {str(record_note)} has been added"
 
 
 def step_note_input() -> RecordNote:
@@ -110,11 +110,10 @@ def remove_note_tag_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the deleted note tag.
     """
-    if len(data) <= 1 : raise IndexError
+    if len(data) < 1: raise IndexError
     note_body, note_tag, = data
     n_book[note_body].remove_note_tag(note_tag)
     return f"note tag - {NoteTag(note_tag)} has been deleted form your note {note_body}"
-
 
 @input_error
 def delete_note_handler(data: list[str]) -> str:
@@ -164,7 +163,7 @@ def find_note_record_tag_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     search_word, = data
-    res = "\n".join([str(rec)[9:] for rec in n_book.find_note_record_tag(search_word)])
+    res = "\n".join([str(rec) for rec in n_book.find_note_record_tag(search_word)])
     if not res:
         return "any note tag was not found"
     return res
@@ -186,7 +185,7 @@ def show_note_by_page(data: list[str]) -> str:
         count_record = int(count_record)
         yield "input any for next page"
         for i, page in enumerate(n_book.notes_iterator(count_record), 1):
-            page = "\n".join(map(lambda x: str(x)[9:], page ))
+            page = "\n".join(map(lambda x: str(x), page ))
             input("")
             head = f'{"-" * 15} Page {i} {"-" * 15}\n'
             yield head + page
@@ -204,7 +203,7 @@ def help_note_handler(*args) -> str:
         )
 
 def show_all_notes(*args) -> str:
-    return "\n".join([str(record)[9:] for record in n_book.values()])
+    return "\n".join([str(record) for record in n_book.values()])
 
 
 def start_handler(*args) -> str:
