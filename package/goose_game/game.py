@@ -20,7 +20,9 @@ COLOR_GREEN = (0, 255, 0)
 
 main_display = pygame.display.set_mode((WIDTH, HEIGHT))  # обьявление дисплея
 
-bg = pygame.transform.scale(pygame.image.load("package\\goose_game\\background.png"), (WIDTH, HEIGHT))
+bg = pygame.transform.scale(
+    pygame.image.load("package\\goose_game\\background.png"), (WIDTH, HEIGHT)
+)
 bg_X1 = 0
 bg_X2 = bg.get_width()
 bg_move = 3
@@ -29,9 +31,13 @@ IMAGES_PATH = "package\\goose_game\\Goose"  # папка с картинками
 PLAYER_IMAGES = os.listdir(IMAGES_PATH)
 
 player_size = (20, 20)  # обьявление модели игрока 20на20 п.
-player = pygame.image.load("package\\goose_game\\player.png").convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
+player = pygame.image.load(
+    "package\\goose_game\\player.png"
+).convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
 # player.fill(COLOR_BLACK) #цвет игрока
-player_rect = player.get_rect().move(150, (HEIGHT - player_size[0]) / 2)  # обьявление координат player (х,y)
+player_rect = player.get_rect().move(
+    150, (HEIGHT - player_size[0]) / 2
+)  # обьявление координат player (х,y)
 # player_speed = [1, 1] #координаты игрока
 player_move_down = [0, 4]
 player_move_right = [4, 0]
@@ -44,7 +50,9 @@ def create_enemy():  # цикл врагов
     enemy = pygame.Surface(enemy_size)  # модель врага
     # enemy.fill(COLOR_BLUE)
     enemy = pygame.image.load("package\\goose_game\\enemy.png").convert_alpha()
-    enemy_rect = pygame.Rect(WIDTH, random.randint(100, HEIGHT - 100), *enemy_size)  # спавн
+    enemy_rect = pygame.Rect(
+        WIDTH, random.randint(100, HEIGHT - 100), *enemy_size
+    )  # спавн
     enemy_move = [random.randint(-8, -4), 0]  # тражктория
     return [enemy, enemy_rect, enemy_move]  # возвращаем enemy[0] enemy[1] enemy[2]
 
@@ -95,7 +103,9 @@ def pop_bonuses(l_bonuses):
 
 def bonus_move(l_bonuses):
     for l_bonus in l_bonuses:
-        l_bonus[1] = l_bonus[1].move(l_bonus[2])  # enemy_rect = enemy_rect.move(enemy_move)но через return функции
+        l_bonus[1] = l_bonus[1].move(
+            l_bonus[2]
+        )  # enemy_rect = enemy_rect.move(enemy_move)но через return функции
     return l_bonuses
 
 
@@ -116,7 +126,9 @@ while playing:  # цикл окна
         if event.type == CREATE_BONUS:
             bonuses.append(create_bonus())
         if event.type == (CHANG_IMAGE):
-            player = pygame.image.load(os.path.join(IMAGES_PATH, PLAYER_IMAGES[image_index]))
+            player = pygame.image.load(
+                os.path.join(IMAGES_PATH, PLAYER_IMAGES[image_index])
+            )
             image_index += 1
             if image_index >= len(PLAYER_IMAGES):
                 image_index = 0
@@ -170,8 +182,12 @@ while playing:  # цикл окна
             score += 1
             bonuses.pop(bonuses.index(bonus))
 
-    main_display.blit(FONT.render(str(score), True, COLOR_BLACK), (WIDTH - 50, 20))  # вывод score на єкран
-    main_display.blit(player, player_rect)  # размещение player в окне метод blit (x,y) или переменная
+    main_display.blit(
+        FONT.render(str(score), True, COLOR_BLACK), (WIDTH - 50, 20)
+    )  # вывод score на єкран
+    main_display.blit(
+        player, player_rect
+    )  # размещение player в окне метод blit (x,y) или переменная
 
     # main_display.blit(enemy,enemy_rect)
     # player_rect = player_rect.move(player_speed) #итерация координат move=+[1,1]???
