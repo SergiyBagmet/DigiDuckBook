@@ -3,6 +3,7 @@ import re, json
 from pathlib import Path
 from prompt_toolkit import prompt
 
+
 from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
 from utils.tool_kit import RainbowLexer, get_completer
 from utils.data_json import DIR_DATA, get_obj, BookEncoder
@@ -498,11 +499,11 @@ def main_contacts():
             continue
 
         func_handler, data = command_parser(user_input)
-        
+
         if func_handler == show_page:
             for page in func_handler(data):
                 print(page)
-            continue    
+            continue
 
         bot_message = func_handler(data)    
         print(f'\n{bot_message}')
