@@ -16,9 +16,25 @@ def input_error(func):
     @wraps(func) #для отображения доки/имени
     def wrapper(*args):
         """
-        декоратор ловит ошибки функций 
-        недостаток аргументов и созданние ошибки
-        затем возвращает на принт 
+        A decorator to handle errors in functions.
+
+        This decorator catches specific exceptions like IndexError, ValueError, and KeyError
+        to provide informative error messages when a function encounters input-related issues.
+
+        Args:
+            *args: Any arguments accepted by the decorated function.
+
+        Returns:
+            str: An error message or the result of the decorated function.
+
+        Example:
+            @input_error
+            def my_function(arg1, arg2):
+                # Your function code here
+
+            # When calling my_function, if it encounters an error, the decorator
+            # will handle it and return an error message.
+
         """
         try:
             return func(*args)
@@ -56,6 +72,8 @@ def add_handler(data: list[str]) -> str:
     a_book.add_record(record)
     return f"contact {str(record)[9:]} has been added"
 
+
+
 def step_input() -> Record: # only for command add
     """
     Prompt the user to enter contact information step by step.
@@ -63,18 +81,29 @@ def step_input() -> Record: # only for command add
     Returns:
         Record: A contact record created from the entered information.
     """
+    add_pass: list[str] = ["next", "none", "unk", "-", "empty", "pass"]
+    Completer_in = get_completer([add_pass])
+
     dict_input = {Name: None, Phone: None,
                   Email : None, Birthday: None, Address: None}
     counter = 0
     while counter < len(dict_input):
         key_class = list(dict_input.keys())[counter]
-        var = input(f"Enter {key_class.__name__.lower()} :\t")
-        if (var.strip().lower() in ["next", "none", "unk", "-", "empty"]) \
+
+        var_input = prompt(
+            message=f'Enter {key_class.__name__.lower()}: ',
+            completer=Completer_in,    # don't work(            
+            lexer=RainbowLexer("#0500FF")               
+        )
+        if (var_input.strip().lower() in add_pass) \
         and (key_class.__name__ not in ["Name", "Phone"]):
             counter += 1
             continue
         try:
-            dict_input[key_class] = key_class(var)
+            if var_input in add_pass:
+                print("Can't pass this step")
+                continue
+            dict_input[key_class] = key_class(var_input)
         except ValueError as er:
             print(er)
             continue
@@ -476,7 +505,7 @@ def main_contacts():
             continue    
 
         bot_message = func_handler(data)    
-        print(bot_message)
+        print(f'\n{bot_message}')
         
         if func_handler == exit_handler:
             break

@@ -34,13 +34,9 @@ def main_game() -> None:
     PLAYER_IMAGES = os.listdir(IMAGES_PATH)
 
     player_size = (20, 20)  # обьявление модели игрока 20на20 п.
-    player = pygame.image.load(
-        "package\\goose_game\\image\\player.png"
-    ).convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
+    player = pygame.image.load("package\\goose_game\\image\\player.png").convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
     # player.fill(COLOR_BLACK) #цвет игрока
-    player_rect = player.get_rect().move(
-        150, (HEIGHT - player_size[0]) / 2
-    )  # обьявление координат player (х,y)
+    player_rect = player.get_rect().move(150, (HEIGHT - player_size[0]) / 2)  # обьявление координат player (х,y)
     # player_speed = [1, 1] #координаты игрока
     player_move_down = [0, 4]
     player_move_right = [4, 0]

@@ -233,47 +233,4 @@ class NotesBook(UserDict):
 
 
 if __name__ == "__main__":
-    tag_1 = NoteTag("#inc")
-    tag_11 = NoteTag('#text')
-    note_1 = NoteBody("hello I'm the first note")
-    rec_1 = RecordNote(note_1,[tag_1, tag_11])
-
-    tag_2 = NoteTag("#digit")
-    note_2 = NoteBody("hello I'm the second note")
-    rec_2 = RecordNote(note_2, [tag_2])
-
-    tag_3 = NoteTag("#letter")
-    note_3 = NoteBody("hello I'm the third note")
-    rec_3 = RecordNote(note_3, [tag_3])
-
-    # print(rec_1, rec_2, rec_3)
-
-   
-
-    rec_1.remove_notetag("#inc")
-    
-    tag_12 = NoteTag("#additional")
-    
-    rec_2.add_notetag(tag_3)
-
-    # print(rec_1, rec_2)
-
-
-    nb = NotesBook()
-    nb.add_note_record(rec_1)
-    nb.add_note_record(rec_2)
-    nb.add_note_record(rec_3)
-
-    # print(nb)
-
-    # print(nb.find_note_record("2"))
-
-    # print(nb.find_note_record_tag('#letter'))
-
-    with open('data_note.json', 'w', encoding='utf-8') as f:
-        json.dump(nb.to_dict(), f, ensure_ascii=False, indent=4)
-
-
-    with open('data_note.json', 'r', encoding='utf-8') as f:
-        restore_data = json.load(f)
-        print(restore_data)
+    pass
