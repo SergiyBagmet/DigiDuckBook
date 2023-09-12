@@ -1,28 +1,41 @@
 from functools import wraps
 import re, json
 from pathlib import Path
+from prompt_toolkit import prompt
 
-from address_book import AddressBook, Record, AddressBookEncoder, Name, Phone, Email, Birthday, Address
+
+from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
 
 
-file_json  = Path.cwd() / "address_book.json" 
-# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
-a_book = AddressBook() 
-try:
-    with open(file_json, "r") as file:
-        unpacked = json.load(file)
-    a_book.from_dict(unpacked)
-except FileNotFoundError:
-    with open(file_json, "w") as file:
-        json.dump({}, file)
-     
+file_json  = Path(DIR_DATA) / "address_book.json" 
+a_book: AddressBook  = get_obj(file_json, AddressBook)
+
+  
 def input_error(func):
     @wraps(func) #для отображения доки/имени
     def wrapper(*args):
         """
-        декоратор ловит ошибки функций 
-        недостаток аргументов и созданние ошибки
-        затем возвращает на принт 
+        A decorator to handle errors in functions.
+
+        This decorator catches specific exceptions like IndexError, ValueError, and KeyError
+        to provide informative error messages when a function encounters input-related issues.
+
+        Args:
+            *args: Any arguments accepted by the decorated function.
+
+        Returns:
+            str: An error message or the result of the decorated function.
+
+        Example:
+            @input_error
+            def my_function(arg1, arg2):
+                # Your function code here
+
+            # When calling my_function, if it encounters an error, the decorator
+            # will handle it and return an error message.
+
         """
         try:
             return func(*args)
@@ -60,6 +73,8 @@ def add_handler(data: list[str]) -> str:
     a_book.add_record(record)
     return f"contact {str(record)[9:]} has been added"
 
+
+
 def step_input() -> Record: # only for command add
     """
     Prompt the user to enter contact information step by step.
@@ -67,14 +82,29 @@ def step_input() -> Record: # only for command add
     Returns:
         Record: A contact record created from the entered information.
     """
-    dict_input = {Name: False, Phone: False,
-                  Email : False, Birthday: False, Address: False}
+    add_pass: list[str] = ["next", "none", "unk", "-", "empty", "pass"]
+    Completer_in = get_completer([add_pass])
+
+    dict_input = {Name: None, Phone: None,
+                  Email : None, Birthday: None, Address: None}
     counter = 0
     while counter < len(dict_input):
         key_class = list(dict_input.keys())[counter]
-        var = input(f"Enter {key_class.__name__.lower()} :\t")
+
+        var_input = prompt(
+            message=f'Enter {key_class.__name__.lower()}: ',
+            completer=Completer_in,    # don't work(            
+            lexer=RainbowLexer("#0500FF")               
+        )
+        if (var_input.strip().lower() in add_pass) \
+        and (key_class.__name__ not in ["Name", "Phone"]):
+            counter += 1
+            continue
         try:
-            dict_input[key_class] = key_class(var)
+            if var_input in add_pass:
+                print("Can't pass this step")
+                continue
+            dict_input[key_class] = key_class(var_input)
         except ValueError as er:
             print(er)
             continue
@@ -347,8 +377,8 @@ def hello_handler(*args) -> str:
 
 def exit_handler(*args) -> str:
     with open(file_json, "w") as file:
-        json.dump(a_book, file, cls=AddressBookEncoder, sort_keys=True, indent=4)
-    return "\nAddress book has been closed\n"
+        json.dump(a_book, file, cls=BookEncoder, sort_keys=True, indent=4)
+    return "\nAddress book has cloused\n"
 
 def unknown_command(*args) -> str:
     return 'Unknown command'
@@ -365,14 +395,14 @@ def command_parser(row_str: str):
     """
     row_str = re.sub(r'\s+', ' ', row_str) 
     elements = row_str.strip().split(" ")
-    for key, value in BOT_COMMANDS.items():
+    for key, value in COMMANDS_AB.items():
         if elements[0].lower() in value[0]:
             return key, elements[1:]
         elif " ".join(elements[:2]).lower() in value[0]: 
             return key, elements[2:] 
     return unknown_command, None
 
-BOT_COMMANDS = {
+COMMANDS_AB = {
     # при командах (с одинаковими первими словами)"add" & "add phone" работает какую первую найдет
     hello_handler: (
         ["hello"],
@@ -450,13 +480,21 @@ BOT_COMMANDS = {
         ),
 }
 
-COMMANDS_HELP = {k.__name__:v for k,v in BOT_COMMANDS.items()}
+COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
+
+
+Completer = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
     hello = "connected to Address Book\n"
     while True:
-        user_input = input(f"{hello}>>>")
-        hello = ""
+        # user_input = input(">>>")
+        user_input = prompt(
+            message="\nAddress Book >>>",
+            completer=Completer,                
+            lexer=RainbowLexer("#0000FF")               
+            )
+
         if not user_input or user_input.isspace():
             continue
 
@@ -467,9 +505,9 @@ def main_contacts():
                 print(page)
             continue
 
-        bot_message = func_handler(data)
-        print(bot_message)
-
+        bot_message = func_handler(data)    
+        print(f'\n{bot_message}')
+        
         if func_handler == exit_handler:
             break
         

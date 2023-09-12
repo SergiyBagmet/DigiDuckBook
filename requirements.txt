@@ -1,0 +1,8 @@
+pygame==1.9.5.dev0
+pip==23.2.1
+prompt-toolkit==3.0.39
+pygame==2.5.1
+pygame.snake==0.0.1a0
+setuptools==68.0.0
+wcwidth==0.2.6
+wheel==0.41.2
