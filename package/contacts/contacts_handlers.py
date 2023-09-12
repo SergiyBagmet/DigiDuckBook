@@ -68,12 +68,16 @@ def step_input() -> Record: # only for command add
     Returns:
         Record: A contact record created from the entered information.
     """
-    dict_input = {Name: False, Phone: False,
-                  Email : False, Birthday: False, Address: False}
+    dict_input = {Name: None, Phone: None,
+                  Email : None, Birthday: None, Address: None}
     counter = 0
     while counter < len(dict_input):
         key_class = list(dict_input.keys())[counter]
         var = input(f"Enter {key_class.__name__.lower()} :\t")
+        if (var.strip().lower() in ["next", "none", "unk", "-", "empty"]) \
+        and (key_class.__name__ not in ["Name", "Phone"]):
+            counter += 1
+            continue
         try:
             dict_input[key_class] = key_class(var)
         except ValueError as er:
