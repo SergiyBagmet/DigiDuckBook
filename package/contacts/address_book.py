@@ -43,8 +43,15 @@ class Name(Field):
     """
     Class representing the name field in a record of the address book.
     """
+    def __valid_name(self, value) -> str:
+        if len(value) > 2:
+            return value
+        else:
+            raise ValueError(f'Value {value} is too short!')
 
-    pass
+    @Field.value.setter  # переопределяем сеттер родительского класса
+    def value(self, value: str) -> None:
+        Field.value.fset(self, value, self.__valid_name)
 
 
 class Phone(Field):
