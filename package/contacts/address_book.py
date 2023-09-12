@@ -52,10 +52,11 @@ class Phone(Field):
     Class representing the phone field in a record of the address book.
     """ 
     def __valid_phone(self, value) -> str:
-        phone_pattern = re.compile(r'\+380?\(?\d{2,3}\)?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|38\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|8?\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}')
+        value = re.sub(r'[ \(\)\-]', '', value)
+        phone_pattern = re.compile(r'\+380\d{,9}|380\d{,9}|80\d{,9}|0\d{,9}')
         if re.fullmatch(phone_pattern, value) is None:
-            raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380991112233"')
-        return value
+            raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380xx3456789"')
+        return f"+380{value[-9:]}"
 
     @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
