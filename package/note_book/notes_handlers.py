@@ -4,7 +4,7 @@ from pathlib import Path
 
 from notes_oop import NoteTag, NoteBody, RecordNote, NotesBook, NotesBookEncoder
 
-file_notes_json  = Path.cwd() / "notes_oop.json"
+file_notes_json  = Path.cwd() / "notes_oop.json" #TODO
 # TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
 n_book = NotesBook()
 try:
@@ -68,11 +68,12 @@ def step_note_input() -> RecordNote:
     Returns:
         RecordNote: A note record created from the entered information.
     """
+    #TODO
     dict_input = {NoteBody: False, NoteTag: False}
     counter = 0
     while counter < len(dict_input):
         key_class = list(dict_input.keys())[counter]
-        var = input(f"Enter {key_class.__name__.lower()} :\t")
+        var = input(f"Enter {key_class.__name__.lower()}: ")
         try:
             dict_input[key_class] = key_class(var)
         except ValueError as er:
@@ -94,9 +95,9 @@ def add_note_tag_handler(data : list[str]) -> str:
         str: A confirmation message for the added note tag.
     """
     if len(data) <= 1 : raise IndexError
-    note_body, new_tag, = data
-    n_book[id].add_notetag(new_tag)
-    return f"Successful added tag {NoteTag(new_tag)} to note {id}"
+    note_id, new_tag, = data
+    n_book[note_id].add_note_tag(new_tag)
+    return f"Successful added tag {NoteTag(new_tag)} to note {str(n_book[note_id])}"
 
 
 @input_error
@@ -110,10 +111,10 @@ def remove_note_tag_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the deleted note tag.
     """
-    if len(data) < 1: raise IndexError
-    note_body, note_tag, = data
-    n_book[note_body].remove_note_tag(note_tag)
-    return f"note tag - {NoteTag(note_tag)} has been deleted form your note {note_body}"
+    if len(data) <= 1: raise IndexError
+    note_id, note_tag, = data
+    n_book[note_id].remove_note_tag(note_tag)
+    return f"note tag - {NoteTag(note_tag)} has been deleted form your note {str(n_book[note_id])}"
 
 @input_error
 def delete_note_handler(data: list[str]) -> str:
@@ -127,12 +128,13 @@ def delete_note_handler(data: list[str]) -> str:
         str: A confirmation message for the deleted note.
     """
     if len(data) < 1 : raise IndexError
-    note_tag, = data
-    del n_book[note_tag]
-    return f"note with {note_tag} has been deleted"
+    note_id, = data
+    body = n_book[note_id].note_body
+    del n_book[note_id] 
+    return f"note '{body}' has been deleted"
 
-
-def find_note_record_handler(data: list[str]) -> str:
+@input_error
+def find_note_for_id_handler(data: list[str]) -> str:
     """
         Search for notes by a given ID.
 
@@ -143,11 +145,8 @@ def find_note_record_handler(data: list[str]) -> str:
             str: A formatted list of notes matching the ID.
         """
     if len(data) < 1: raise IndexError
-    key_note_id, = data
-    res = n_book.find_note_record(key_note_id)
-    if not res:
-        return "Any note was not found"
-    return res
+    note_id, = data
+    return n_book[note_id]
 
 
 @input_error
@@ -162,11 +161,11 @@ def find_note_record_tag_handler(data: list[str]) -> str:
         str: A formatted list of notes matching the search keyword (note tag).
     """
     if len(data) < 1 : raise IndexError
-    search_word, = data
-    res = "\n".join([str(rec) for rec in n_book.find_note_record_tag(search_word)])
-    if not res:
+    search_tag, = data
+    find_notes = "\n".join([str(rec) for rec in n_book.find_note_record_tag(search_tag)])
+    if not find_notes:
         return "any note tag was not found"
-    return res
+    return find_notes
 
 
 @input_error
@@ -196,14 +195,13 @@ def show_note_by_page(data: list[str]) -> str:
 
 def help_note_handler(*args) -> str:
    return "\n".join(
-        [
-        '{:<26}{:<}'.format(" / ".join(com_anot[0]), com_anot[1])
+        ['{:<26}{:<}'.format(" / ".join(com_anot[0]), com_anot[1])
         for com_anot in COMMANDS_HELP.values()
         ]
-        )
+    )
 
 def show_all_notes(*args) -> str:
-    return "\n".join([str(record) for record in n_book.values()])
+    return "\n".join([str(record_n) for record_n in n_book.values()])
 
 
 def start_handler(*args) -> str:
@@ -250,7 +248,7 @@ BOT_NOTE_COMMANDS = {
         "adding note"
         ),
     add_note_tag_handler: (
-        ["add tag"],
+        ["add_tag"],
         "adding tag/s to a note"
         ),
     remove_note_tag_handler: (
@@ -262,10 +260,10 @@ BOT_NOTE_COMMANDS = {
         "delete ID(note)"
         ),
     find_note_record_tag_handler: (
-        ["find tag"],
+        ["find_tag"],
         "find tag #tag"
         ),
-    find_note_record_handler: (
+    find_note_for_id_handler: (
         ["find"],
         "find notes"
         ),

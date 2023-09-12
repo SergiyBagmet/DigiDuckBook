@@ -85,7 +85,7 @@ class RecordNote:
             self,
             note_body :NoteBody | str, 
             note_tags: list[NoteTag] | list[str] = [],
-            note_id: None = None,
+            note_id: None = None, # for init out json
             ) -> None:
         
         self.note_id = str(self.unic_id(note_id)) 
@@ -135,23 +135,16 @@ class RecordNote:
         Returns: 
             None: This method does not return any value.
         """
-
-        note_tag = self._tag(note_tag)
-        if note_tag not in self.note_tags:
+        if (note_tag:=self._tag(note_tag)) not in self.note_tags:
             raise ValueError(f"The note tag '{note_tag}' is not in this notes book.")
+        if len(self.note_tags) == 0:
+            raise ValueError(f"I can't remove last tag, writhe 'delete {self.note_id}' to remove notes")
         self.note_tags.remove(note_tag)
 
-        # try:
-        #     self.note_tags.remove(self._tag(note_tag))
-        # except ValueError:
-        #     raise ValueError(f"note tag: {note_tag} not exists")
-
-    
-    def __str__(self) -> str:
-        
+    def __str__(self) -> str:   
         return (
             f'\n\tID: {self.note_id}\n'
-            f'\tNote tags: {" ".join(map(str,self.note_tags))}\n'
+            f'\tNote tags: {" ".join(map(str, self.note_tags))}\n'
             f'\t{self.note_body}\n')
     
     def to_dict(self) -> dict[int, dict[list[str], str]]:
@@ -172,25 +165,51 @@ class NotesBook(UserDict):
     def add_note_record(self, note_record: RecordNote):
         if not isinstance(note_record, RecordNote):
             raise TypeError("Note Record must be an instance of the RecordNote class.")
-        self.data[note_record.note_id] = note_record 
+        self[note_record.note_id] = note_record 
+    
 
-    
-    def find_note_record(self, key_note_id: str): 
-        if (note_record := self.data.get(key_note_id)) is None:
-            raise ValueError("There isn't such note")
-        return note_record
-    
-    
     def find_note_record_tag(self, tag: str) -> list[RecordNote]:
         list_rec_notes = []
 
         for rec_note in self.data.values():         
             if (tag := rec_note._tag(tag)) in rec_note.note_tags:
                 list_rec_notes.append(rec_note)
+        return list_rec_notes   
+     
+    def __getitem__(self, id: str) -> RecordNote:
+        """
+        Retrieve a record from the address book by its id.
 
-        return list_rec_notes    
+        Args:
+            id (str): The id of the record to retrieve.
+        Returns:
+            RecordNote: The record object corresponding to the given id.
+        Raises:
+            KeyError: If the provided name is not found in the note book.
+        """
+        record_note = self.data.get(id)
+        if record_note is None:
+            raise KeyError(f"This id {id} isn't in Note Book")
+        return record_note
 
-    def __delaitem__(self, key: str) -> None:
+    def __setitem__(self, id: str, val: RecordNote) -> None:
+        """
+        Add or update a record in the address book.
+
+        Args:
+            id (str): The note_id of the record.
+            val (RecordNote): The record_note object to be added or updated.
+        Raises:
+            TypeError: If the given id is not an instance of the RecordNote class.
+            KeyError: If the provided name is already present in the note book.
+        """
+        if not isinstance(val, RecordNote):
+            raise TypeError("Record must be an instance of the RecordNote class.")
+        if id in self.data:
+            raise KeyError(f"Note on this id'{id}' is already in notes")
+        self.data[id] = val
+
+    def __delaitem__(self, id: str) -> None:
         """
         Delete a record from the note book by its ID.
 
@@ -199,11 +218,11 @@ class NotesBook(UserDict):
         Raises:
             KeyError: If the provided ID is not found in the note book.
         """
-        if not isinstance(key, str):
+        if not isinstance(id, str):
             raise KeyError("Value must be string")
-        if not key in self.data:
-            raise KeyError(f"Can't delete note {key} isn't in note Book")
-        del self.data[key]
+        if not id in self.data:
+            raise KeyError(f"Can't delete note {id} isn't in note Book")
+        del self.data[id]
 
     def __str__(self) -> str:
         return '\n'.join([str(r) for r in self.values()])
@@ -254,9 +273,7 @@ class NotesBook(UserDict):
         """
         if note_item_number <= 0:
             raise ValueError("Item number must be greater than 0.")
-        elif note_item_number > len(
-            self.data
-        ):
+        elif note_item_number > len(self.data):
             note_item_number = len(self.data)
 
         list_note_records = []
@@ -268,6 +285,7 @@ class NotesBook(UserDict):
 
 
 class NotesBookEncoder(json.JSONEncoder):
+    #TODO
     def default(self, obj: NotesBook | RecordNote) -> dict[str, str | list[str]] | t.Any:
         if isinstance(obj, (NotesBook, RecordNote)):
             return obj.to_dict()
@@ -275,47 +293,4 @@ class NotesBookEncoder(json.JSONEncoder):
 
 
 if __name__ == "__main__":
-    tag_1 = NoteTag("#inc")
-    tag_11 = NoteTag('#text')
-    note_1 = NoteBody("hello I'm the first note")
-    rec_1 = RecordNote(note_1,[tag_1, tag_11])
-
-    tag_2 = NoteTag("#digit")
-    note_2 = NoteBody("hello I'm the second note")
-    rec_2 = RecordNote(note_2, [tag_2])
-
-    tag_3 = NoteTag("#letter")
-    note_3 = NoteBody("hello I'm the third note")
-    rec_3 = RecordNote(note_3, [tag_3])
-
-    # print(rec_1, rec_2, rec_3)
-
-   
-
-    rec_1.remove_note_tag("#inc")
-    
-    tag_12 = NoteTag("#additional")
-    
-    rec_2.add_note_tag(tag_3)
-
-    # print(rec_1, rec_2)
-
-
-    nb = NotesBook()
-    nb.add_note_record(rec_1)
-    nb.add_note_record(rec_2)
-    nb.add_note_record(rec_3)
-
-    # print(nb)
-
-    # print(nb.find_note_record("2"))
-
-    # print(nb.find_note_record_tag('#letter'))
-
-    with open('data_note.json', 'w', encoding='utf-8') as f:
-        json.dump(nb.to_dict(), f, ensure_ascii=False, indent=4)
-
-
-    with open('data_note.json', 'r', encoding='utf-8') as f:
-        restore_data = json.load(f)
-        print(restore_data)
+    pass
