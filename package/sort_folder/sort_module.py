@@ -2,6 +2,9 @@ from pathlib import Path
 from itertools import chain
 import shutil
 import re
+from prompt_toolkit import prompt
+
+from utils.tool_kit import RainbowLexer, get_completer
 
 
 FILE_EXTENSIONS = {
@@ -225,7 +228,7 @@ def sort_unk_command(*args) -> str:
     return 'Unknown command\n'
 
 def sort_exit(*args) -> str:
-    return "change to menu\n\n"
+    return "\nsorting is closed go to the main menud\n"
 
 def sort_help(*args) -> str:
     pass
@@ -245,14 +248,21 @@ def parser_cm(user_input: str):
             return func
     return sort_unk_command   
 
-def sort_main():
+Completer = get_completer(SORT_COMMANDS.values())
+
+def main_sort():
     path_input = input("\nEnter full path to you dir, will be sort or menu\n>>>")
     if Path(path_input).is_dir():
         path = Path(path_input)
         dir_data: dict[str, list[tuple[str]]] = sort_folder(path)
         print(f'\nYour folder "{path.stem}" has been sorted\n')
         while True:
-            user_input = input("\nSorted info/back to menu>>>\t")
+            # user_input = input("\nSorted info/back to menu>>>")
+            user_input = prompt(
+                message="\nSorted info or menu >>>",
+                completer=Completer,                
+                lexer=RainbowLexer("#FFFF00")               
+                )
             if not user_input or user_input.isspace():
                 continue
 
@@ -266,7 +276,7 @@ def sort_main():
         print(sort_exit()) # back to menu           
     else:
         print("not corect path")
-        sort_main() # костиль
+        main_sort() # костиль
 
 if __name__ == "__main__":
-    sort_main()
+    main_sort()
