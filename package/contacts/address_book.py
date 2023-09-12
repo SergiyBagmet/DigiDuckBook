@@ -43,8 +43,14 @@ class Name(Field):
     """
     Class representing the name field in a record of the address book.
     """
+    def __valid_name(self, value) -> str:
+        if not (len(value) > 2):
+            raise ValueError(f'Name "{value}" is too short!')
+        return value
 
-    pass
+    @Field.value.setter  # переопределяем сеттер родительского класса
+    def value(self, value: str) -> None:
+        Field.value.fset(self, value, self.__valid_name)
 
 
 class Phone(Field):
@@ -52,10 +58,23 @@ class Phone(Field):
     Class representing the phone field in a record of the address book.
     """ 
     def __valid_phone(self, value) -> str:
-        phone_pattern = re.compile(r'\+380?\(?\d{2,3}\)?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|38\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}|8?\d{3}[\s-]?\d{3}[\s-]?\d{1,2}[\s-]?\d{2,3}')
+        """
+        Validate and format a phone number string.
+
+        Args:
+            value (str): The input phone number string to be validated.
+        Returns:
+            str: The validated and formatted phone number in the "+380xxxxxxxxx" format.
+        Raises:
+            ValueError: If the input value is not in the correct format.
+        Example:
+            valid_phone = __valid_phone("+380 (67) 123-45-67")
+        """
+        value = re.sub(r'[ \(\)\-]', '', value)
+        phone_pattern = re.compile(r'\+380\d{,9}|380\d{,9}|80\d{,9}|0\d{,9}')
         if re.fullmatch(phone_pattern, value) is None:
-            raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380991112233"')
-        return value
+            raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380xx3456789"')
+        return f"+380{value[-9:]}"
 
     @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
