@@ -4,6 +4,7 @@ from prompt_toolkit import prompt
 
 from contacts.contacts_handlers import main_contacts
 from sort_folder.sort_module import main_sort
+from note_book.notes_handlers import main_notes
 from goose_game.game import main_game
 from utils.tool_kit import RainbowLexer, get_completer
 
@@ -30,7 +31,7 @@ def bot_exit() -> str:
 
 COMMANDS_MAIN_BOT : dict[t.Callable, list[str] ] = {
     main_contacts : ["1", "ab", "contacts", "adress book"],
-    # main_notes : ["2", "notes", "note book"],
+    main_notes : ["2", "notes", "note book"],
     main_sort : ["3", "sort", "folder", "dir", "sort folder"],
     main_game : ["4", "game", "fun", "goose",],
     bot_help : ["help", "?", "start"],

@@ -483,15 +483,14 @@ COMMANDS_AB = {
 COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 
 
-Completer = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
+Completer_ab = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
-    hello = "connected to Address Book\n"
     while True:
         # user_input = input(">>>")
         user_input = prompt(
             message="\nAddress Book >>>",
-            completer=Completer,                
+            completer=Completer_ab,                
             lexer=RainbowLexer("#0000FF")               
             )
 

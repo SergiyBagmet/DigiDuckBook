@@ -1,19 +1,14 @@
 from functools import wraps
 import re, json
 from pathlib import Path
+from prompt_toolkit import prompt
 
-from notes_oop import NoteTag, NoteBody, RecordNote, NotesBook, NotesBookEncoder
+from note_book.notes_oop import NoteTag, NoteBody, RecordNote, NotesBook
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
+from utils.tool_kit import RainbowLexer, get_completer
 
-file_notes_json  = Path.cwd() / "notes_oop.json" #TODO
-# TODO one path to dir (сейчас откуда запускаем туда и ложится джейсон) я подумаю
-n_book = NotesBook()
-try:
-    with open(file_notes_json, "r") as file:
-        unpacked = json.load(file)
-    n_book.from_dict(unpacked)
-except FileNotFoundError:
-    with open(file_notes_json, "w") as file:
-        json.dump({}, file)
+file_notes_json = Path(DIR_DATA) / "notes_book.json"
+n_book: NotesBook = get_obj(file_notes_json, NotesBook) 
 
 def input_error(func):
     @wraps(func)
@@ -210,7 +205,7 @@ def start_handler(*args) -> str:
 
 def exit_note_handler(*args) -> str:
     with open(file_notes_json, "w") as file:
-        json.dump(n_book, file, cls=NotesBookEncoder, sort_keys=True, indent=4)
+        json.dump(n_book, file, cls=BookEncoder, sort_keys=True, indent=4)
     return "\nNotes book has been closed\n"
 
 
@@ -287,11 +282,15 @@ BOT_NOTE_COMMANDS = {
 
 COMMANDS_HELP = {k.__name__:v for k,v in BOT_NOTE_COMMANDS.items()}
 
+Completer_nb = get_completer([tupl[0] for tupl in BOT_NOTE_COMMANDS.values()])
+
 def main_notes():
-    start = "You are connected to Notes Book\n"
     while True:
-        user_input = input(f"{start}>>>")
-        start = ""
+        user_input = prompt(
+            message="\nNotes Book >>>",
+            completer=Completer_nb,                
+            lexer=RainbowLexer("#ff00ff")               
+            )
         if not user_input or user_input.isspace():
             continue
 
