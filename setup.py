@@ -1,10 +1,10 @@
 from setuptools import setup, find_namespace_packages
 
 setup(
-    name='DigiDuck',
+    name='DigiDuckBook',
     version='0.0.1',
     description='console bot for contacts book, notes and folder sorting by categories',
-    #url='https://github.com/SergiyBagmet/Superior_Contact_Crafterl',
+    url='https://github.com/SergiyBagmet/DigiDuckBook',
     author='Sergey Bagmet',
     author_email='sergey94bagmet@gmail.com',
     license='MIT',
@@ -16,5 +16,5 @@ setup(
     ],
     packages=find_namespace_packages(),
     install_requires=['markdown'],
-    entry_points={'console_scripts': ['duck = DigiDuck.main_bot:main_digi_duck']},
+    entry_points={'console_scripts': ['duck = DigiDuckBook.main_bot:main_digi_duck']},
 )
