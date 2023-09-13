@@ -71,7 +71,7 @@ class Phone(Field):
             valid_phone = __valid_phone("+380 (67) 123-45-67")
         """
         value = re.sub(r'[ \(\)\-]', '', value)
-        phone_pattern = re.compile(r'\+380\d{,9}|380\d{,9}|80\d{,9}|0\d{,9}')
+        phone_pattern = re.compile(r'\+380\d{9}|380\d{9}|80\d{9}|0\d{9}')
         if re.fullmatch(phone_pattern, value) is None:
             raise ValueError(f'Value {value} is not in correct format! Enter phone in format "+380xx3456789"')
         return f"+380{value[-9:]}"
@@ -125,9 +125,11 @@ class Birthday(Field):
             str: The valid ISO-formatted date string.
         """
         try:
-            date.fromisoformat(value)
+            b_day = date.fromisoformat(value)
         except ValueError: 
-            raise ValueError(f'Value {value} is not correct format! for example "2023-12-30"') 
+            raise ValueError(f'Birthday {value} is not correct format! for example "2023-12-30"') 
+        if b_day.year > date.today().year:
+            raise ValueError(f'{value} -  you from the future?')
         return value    
     
     @Field.value.setter
@@ -153,9 +155,11 @@ class Address(Field):
         Returns:
             str: The valid address string.
         """
-        if len(value)>50:
+        if value.isspace():
+            raise ValueError(f'Address "{value}" is not in correct format!')
+        if not (5 <= len(value) <= 50):
             raise ValueError(
-                f'Value {value} is not in correct format! Your address is too long. Make it shorter')
+                f'Address "{value}" is not in correct format! It must contain from 5 to 50 characters')
         return value
 
     @Field.value.setter

@@ -62,7 +62,11 @@ def add_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added contact.
     """
-    if len(data)>=2:
+    if len(data) >= 5:
+        name, phone, email, b_day, = data[:4]
+        address = data[4:]
+        record = Record(name, [phone], email, b_day, " ".join(address))
+    elif len(data) >= 2:
         name, phone, = data
         record = Record(name, [phone])
     elif len(data) == 1:
