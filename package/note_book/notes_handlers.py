@@ -44,14 +44,19 @@ def add_note_record_handler(data: list[str]) -> str:
     Returns:
         str: A confirmation message for the added note.
     """
-    if len(data)>=2:
-        note_body, note_tag, = data
-        record_note = RecordNote(note_body, [note_tag])
+    if len(data) == 0 :
+        record_note = step_note_input()
     elif len(data) == 1:
         raise IndexError
-    else :
-        record_note = step_note_input()
-
+    elif len(data)==2:
+        note_body, note_tag, = data
+        record_note = RecordNote(note_body, [note_tag])
+    else:
+        note_body = " ".join(filter(lambda x: not x.startswith("#"), data))
+        list_tag = list(filter(lambda x: x.startswith("#"), data))
+        if len(list_tag) == 0:
+            raise IndexError
+        record_note = RecordNote(note_body, list_tag)
     n_book.add_note_record(record_note)
     return f"Note {str(record_note)} has been added"
 
@@ -68,9 +73,12 @@ def step_note_input() -> RecordNote:
     counter = 0
     while counter < len(dict_input):
         key_class = list(dict_input.keys())[counter]
-        var = input(f"Enter {key_class.__name__.lower()}: ")
+        var_input = input(f"Enter {key_class.__name__.lower()}: ")
+
+        if key_class.__name__ == "NoteTag":
+            var_input = "#" + var_input if not var_input.startswith("#") else var_input
         try:
-            dict_input[key_class] = key_class(var)
+            dict_input[key_class] = key_class(var_input)
         except ValueError as er:
             print(er)
             continue

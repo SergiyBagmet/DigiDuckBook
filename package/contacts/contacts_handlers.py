@@ -73,7 +73,6 @@ def add_handler(data: list[str]) -> str:
         raise IndexError
     else :
         record = step_input()
-
     a_book.add_record(record)
     return f"contact {str(record)[9:]} has been added"
 

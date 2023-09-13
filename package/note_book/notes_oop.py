@@ -165,7 +165,8 @@ class NotesBook(UserDict):
     def add_note_record(self, note_record: RecordNote):
         if not isinstance(note_record, RecordNote):
             raise TypeError("Note Record must be an instance of the RecordNote class.")
-        self[note_record.note_id] = note_record 
+        self[note_record.note_id] = note_record
+        RecordNote.counter = int(note_record.note_id) 
     
 
     def find_note_record_tag(self, tag: str) -> list[RecordNote]:
@@ -254,7 +255,9 @@ class NotesBook(UserDict):
         for key, value in data_json.items():
             self.add_note_record(
                 RecordNote(note_id=key, note_tags=value['Tags'], note_body=value['Note'])
-            )    
+            )
+
+
 
     def notes_iterator(self, note_item_number: int) -> t.Generator[RecordNote, int, None]:
         """
