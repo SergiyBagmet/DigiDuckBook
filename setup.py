@@ -2,7 +2,7 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='DigiDuckBook',
-    version='0.0.1',
+    version='0.0.3',
     description='console bot for contacts book, notes and folder sorting by categories',
     url='https://github.com/SergiyBagmet/DigiDuckBook',
     author='Sergey Bagmet',

@@ -1,1 +1,1 @@
-from .main_bot import main_digi_duck
+from DigiDuckBook.main_bot import main_digi_duck

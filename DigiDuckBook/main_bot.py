@@ -2,12 +2,12 @@ import typing as t
 from prompt_toolkit import prompt
 
 
-from contacts.contacts_handlers import main_contacts
-from sort_folder.sort_module import main_sort
-from note_book.notes_handlers import main_notes
-from goose_game.game import main_game
-from utils.tool_kit import RainbowLexer, get_completer
-from utils.cls_clear import clear
+from DigiDuckBook.contacts.contacts_handlers import main_contacts
+from DigiDuckBook.sort_folder.sort_module import main_sort
+from DigiDuckBook.note_book.notes_handlers import main_notes
+from DigiDuckBook.goose_game.game import main_game
+from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
+from DigiDuckBook.utils.cls_clear import clear
 
 
 

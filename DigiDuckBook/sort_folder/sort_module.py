@@ -4,8 +4,8 @@ import shutil
 import re
 from prompt_toolkit import prompt
 
-from utils.tool_kit import RainbowLexer, get_completer
-from utils.cls_clear import clear
+from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
+from DigiDuckBook.utils.cls_clear import clear
 
 FILE_EXTENSIONS = {
     'images': {'.jpeg', '.png', '.jpg', '.svg'},
