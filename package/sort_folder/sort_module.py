@@ -231,17 +231,27 @@ def sort_exit(*args) -> str:
     return "\nsorting is closed go to the main menud\n"
 
 def sort_help(*args) -> str:
-    pass
+    info = "\n".join(INFO) #костиль
+    return f'Commans for info after sort your folder\n\n{info}'
 
 SORT_COMMANDS = {
     show_bot_ext : ["bot ext", "data", "bot data",],
-    sort_exit : ["menu", "back", "fin",],
     show_sort_files : ["show file", "file" ],
     show_knolege_ext : ["show ext", "ext", "my ext", "extensions", "know"],
     show_unknow_ext : ["unk", "unknown", "unk ext",],
+    sort_exit : ["menu", "back", "fin",],
     sort_help :["help"]
 }
+#костиль
+INFO = [
+    "data - Displays extended information about the bot, including its data.",
+    "file - Shows a list of files and folders in the current directory.",
+    "ext - Displays a list of known file extensions and the programs associated with them.",
+    "unk - Displays a list of unknown (unsupported) file extensions.",
+    "menu - Returns to the main menu or exits the current submenu.",
+    "help - Displays help information about available commands in the current submenu.",
 
+]
 def parser_cm(user_input: str):
     for func, comm in SORT_COMMANDS.items():
         if user_input.strip().lower() in comm:
@@ -251,7 +261,8 @@ def parser_cm(user_input: str):
 Completer = get_completer(SORT_COMMANDS.values())
 
 def main_sort():
-    path_input = input("\nEnter full path to you dir, will be sort or menu\n>>>")
+    print(sort_help())
+    path_input = input("\nEnter full path to you dir, will be sort >>>")
     if Path(path_input).is_dir():
         path = Path(path_input)
         dir_data: dict[str, list[tuple[str]]] = sort_folder(path)

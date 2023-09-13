@@ -489,8 +489,8 @@ COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 Completer_ab = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
+    print(help_handler())
     while True:
-        # user_input = input(">>>")
         user_input = prompt(
             message="\nAddress Book >>>",
             completer=Completer_ab,                

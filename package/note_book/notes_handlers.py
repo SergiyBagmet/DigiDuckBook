@@ -68,7 +68,6 @@ def step_note_input() -> RecordNote:
     Returns:
         RecordNote: A note record created from the entered information.
     """
-    #TODO
     dict_input = {NoteBody: False, NoteTag: False}
     counter = 0
     while counter < len(dict_input):
@@ -293,6 +292,7 @@ COMMANDS_HELP = {k.__name__:v for k,v in BOT_NOTE_COMMANDS.items()}
 Completer_nb = get_completer([tupl[0] for tupl in BOT_NOTE_COMMANDS.values()])
 
 def main_notes():
+    print(help_note_handler())
     while True:
         user_input = prompt(
             message="\nNotes Book >>>",

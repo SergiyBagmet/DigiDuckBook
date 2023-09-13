@@ -1,5 +1,7 @@
 import random
 import os
+from os import environ
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame  # подключение библиотеки
 from pygame.constants import QUIT, K_DOWN, K_UP, K_LEFT, K_RIGHT  # константы кнопок
