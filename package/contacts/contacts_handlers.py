@@ -7,6 +7,7 @@ from prompt_toolkit import prompt
 from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
 from utils.tool_kit import RainbowLexer, get_completer
 from utils.data_json import DIR_DATA, get_obj, BookEncoder
+from utils.cls_clear import clear
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
@@ -489,6 +490,7 @@ COMMANDS_HELP = {k.__name__:v for k,v in COMMANDS_AB.items()}
 Completer_ab = get_completer([tupl[0] for tupl in COMMANDS_AB.values()])
 
 def main_contacts():
+    clear() # clear console
     print(help_handler())
     while True:
         user_input = prompt(

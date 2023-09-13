@@ -60,4 +60,6 @@ def get_completer(commands: t.Iterable[list[str]]) -> NestedCompleter:
     dict_commands: dict[str, None] = dict.fromkeys(chain.from_iterable(commands)) 
     return NestedCompleter.from_nested_dict(dict_commands)
     
+if __name__ == "__main__":
+    pass        
 

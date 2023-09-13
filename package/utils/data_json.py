@@ -58,3 +58,6 @@ class BookEncoder(json.JSONEncoder):
         if hasattr(obj, "to_dict"):
             return obj.to_dict()
         return super().default(obj) 
+    
+if __name__ == "__main__":
+    pass    

@@ -6,6 +6,7 @@ from prompt_toolkit import prompt
 from note_book.notes_oop import NoteTag, NoteBody, RecordNote, NotesBook
 from utils.data_json import DIR_DATA, get_obj, BookEncoder
 from utils.tool_kit import RainbowLexer, get_completer
+from utils.cls_clear import clear
 
 file_notes_json = Path(DIR_DATA) / "notes_book.json"
 n_book: NotesBook = get_obj(file_notes_json, NotesBook) 
@@ -292,6 +293,7 @@ COMMANDS_HELP = {k.__name__:v for k,v in BOT_NOTE_COMMANDS.items()}
 Completer_nb = get_completer([tupl[0] for tupl in BOT_NOTE_COMMANDS.values()])
 
 def main_notes():
+    clear()
     print(help_note_handler())
     while True:
         user_input = prompt(

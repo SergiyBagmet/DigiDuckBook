@@ -5,7 +5,7 @@ import re
 from prompt_toolkit import prompt
 
 from utils.tool_kit import RainbowLexer, get_completer
-
+from utils.cls_clear import clear
 
 FILE_EXTENSIONS = {
     'images': {'.jpeg', '.png', '.jpg', '.svg'},
@@ -261,6 +261,7 @@ def parser_cm(user_input: str):
 Completer = get_completer(SORT_COMMANDS.values())
 
 def main_sort():
+    clear()
     print(sort_help())
     path_input = input("\nEnter full path to you dir, will be sort >>>")
     if Path(path_input).is_dir():

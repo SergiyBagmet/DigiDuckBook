@@ -7,6 +7,7 @@ from sort_folder.sort_module import main_sort
 from note_book.notes_handlers import main_notes
 from goose_game.game import main_game
 from utils.tool_kit import RainbowLexer, get_completer
+from utils.cls_clear import clear
 
 
 
@@ -81,6 +82,7 @@ def main_digi_duck() -> None:
             continue
 
         module_func()
+        clear()
 
         
 
