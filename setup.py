@@ -15,6 +15,10 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_namespace_packages(),
-    install_requires=['markdown'],
+    install_requires=[
+        'prompt-toolkit==3.0.39',
+        'pygame==2.5.1',
+        'wcwidth==0.2.6',
+    ],
     entry_points={'console_scripts': ['duck = DigiDuckBook.main_bot:main_digi_duck']},
 )
