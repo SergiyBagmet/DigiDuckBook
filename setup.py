@@ -2,7 +2,11 @@ from setuptools import setup, find_namespace_packages
 
 setup(
     name='DigiDuckBook',
-    version='0.0.3',
+    version='0.0.4',
+    packages=['DigiDuckBook'],
+    package_data={
+        'DigiDuckBook': ['gose_game/image'],
+    },
     description='console bot for contacts book, notes and folder sorting by categories',
     url='https://github.com/SergiyBagmet/DigiDuckBook',
     author='Sergey Bagmet',
@@ -20,5 +24,6 @@ setup(
         'pygame==2.5.1',
         'wcwidth==0.2.6',
     ],
+    include_package_data=True,
     entry_points={'console_scripts': ['duck = DigiDuckBook.main_bot:main_digi_duck']},
 )

@@ -244,47 +244,47 @@ def command_parser_notes(row_str: str):
 BOT_NOTE_COMMANDS = {
     start_handler: (
         ["start"],
-        "start work"
+        "start"
         ),
     add_note_record_handler: (
         ["add", "+"],
-        "adding note"
+        "note text #tegs / step"
         ),
     add_note_tag_handler: (
-        ["add_tag"],
-        "adding tag/s to a note"
+        ["add tag"],
+        "id #tag"
         ),
     remove_note_tag_handler: (
         ["remove tag"],
-        "remove/delete tag/s from a note"
+        "tag ID(note) #tag"
         ),
     delete_note_handler: (
         ["delete"],
-        "delete ID(note)"
+        "ID(note)"
         ),
     find_note_record_tag_handler: (
         ["find_tag"],
-        "find tag #tag"
+        "#tag - show all notes whith this #tag"
         ),
-    find_note_for_id_handler: (
+    find_note_record_tag_handler: (
         ["find"],
-        "find notes"
+        "ID(note)"
         ),
     show_all_notes: (
         ["show all"],
-        "show all notes"
+        " - show all notes"
         ),
     show_note_by_page: (
         ["show page"],
-        "int_num(positive) - show all notes"
+        "int_num(positive) - show all notes by step"
         ),
     help_note_handler: (
         ["help"],
-        "show all bot commands"
+        " - show all bot commands"
         ),
     exit_note_handler: (
         ["menu", "back", "esc"],
-        "save changesets and go to menu"
+        " - save changesets and go to menu"
         ),
 }
 

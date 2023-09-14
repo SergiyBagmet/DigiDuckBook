@@ -7,6 +7,8 @@ import pygame  # подключение библиотеки
 from pygame.constants import QUIT, K_DOWN, K_UP, K_LEFT, K_RIGHT  # константы кнопок
 # G:\go_it\training\GitHub\repositories\DigiDuckBook\DigiDuckBook\goose_game\image
 
+IMAGE_PATH = os.path('DigiDuckBook\\goose_game\\image')
+
 def main_game() -> None:
 
     pygame.init()  # инициация библиотеки
