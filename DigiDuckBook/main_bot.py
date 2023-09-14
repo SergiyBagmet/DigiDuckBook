@@ -61,7 +61,7 @@ def main_digi_duck() -> None:
     Main function for the Digi Duck menu.
 
     """
-    # print(bot_help())
+    print(bot_help())
     Completer = get_completer(COMMANDS_MAIN_BOT.values())
     while True:
         # user_input = input("Digi Duck menu >>>")

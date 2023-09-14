@@ -1,12 +1,12 @@
-from setuptools import setup, find_namespace_packages, find_namespace_packages
+from setuptools import setup, find_namespace_packages
 
 setup(
     name='DigiDuckBook',
-    version='0.0.4',
+    version='0.0.7',
+    # package_data={
+    #     'DigiDuckBook': ['goose_game/image/*']
+    #     },
     packages=find_namespace_packages(),
-    package_data={
-        'DigiDuckBook.gose_game': ['image/*'],
-    },
     description='console bot for contacts book, notes and folder sorting by categories',
     url='https://github.com/SergiyBagmet/DigiDuckBook',
     author='Sergey Bagmet',
@@ -18,7 +18,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=find_namespace_packages(),
     install_requires=[
         'prompt-toolkit==3.0.39',
         'pygame==2.5.1',

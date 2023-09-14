@@ -102,6 +102,14 @@ def add_note_tag_handler(data : list[str]) -> str:
     n_book[note_id].add_note_tag(new_tag)
     return f"Successful added tag {NoteTag(new_tag)} to note {str(n_book[note_id])}"
 
+@input_error
+def change_note_text_handler(data : list[str]) -> str:
+    """
+    """
+    if len(data) < 1: raise IndexError
+    note_id, new_text = data[0], data[1:]
+    n_book[note_id].note_body = new_text
+    return f"Note {str(n_book[note_id])} has been changed"
 
 @input_error
 def remove_note_tag_handler(data: list[str]) -> str:
@@ -252,8 +260,12 @@ BOT_NOTE_COMMANDS = {
         ),
     add_note_tag_handler: (
         ["add tag"],
-        "id #tag"
+        "ID(note) #tag"
         ),
+    change_note_text_handler :(
+        ["change text", "change note", "change"],
+        "ID(note) new text to note"
+    ),    
     remove_note_tag_handler: (
         ["remove tag"],
         "tag ID(note) #tag"
