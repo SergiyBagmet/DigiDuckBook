@@ -1,15 +1,20 @@
 import random
 import os
+# from DigiDuckBook. import current_directory
 from os import environ
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
+
 import pygame  # подключение библиотеки
 from pygame.constants import QUIT, K_DOWN, K_UP, K_LEFT, K_RIGHT  # константы кнопок
-# G:\go_it\training\GitHub\repositories\DigiDuckBook\DigiDuckBook\goose_game\image
 
+# Получите абсолютный путь к текущему файлу (файлу игры)
+current_module_path = os.path.abspath(__file__)
+
+# Получите абсолютный путь к корневой директории вашего проекта
+project_root = os.path.abspath(os.path.join(current_module_path, '..',))
 
 def main_game() -> None:
-
     pygame.init()  # инициация библиотеки
 
     FPS = pygame.time.Clock()  # класс Clock для скорости отображения окна
@@ -26,18 +31,20 @@ def main_game() -> None:
 
     main_display = pygame.display.set_mode((WIDTH, HEIGHT))  # обьявление дисплея
 
+    bg_img = os.path.join(project_root, "image", "background.png")
     bg = pygame.transform.scale(
-        pygame.image.load("DigiDuckBook\\goose_game\\image\\background.png"), (WIDTH, HEIGHT)
+        pygame.image.load(bg_img), (WIDTH, HEIGHT)
     )
     bg_X1 = 0
     bg_X2 = bg.get_width()
     bg_move = 3
 
-    IMAGES_PATH = "DigiDuckBook\\goose_game\\image\\Goose"  # папка с картинками анимации # TODO обережно зі шляхами
+    IMAGES_PATH = os.path.join(project_root, "image", "Goose")  # папка с картинками анимации # TODO обережно зі шляхами
     PLAYER_IMAGES = os.listdir(IMAGES_PATH)
 
     player_size = (20, 20)  # обьявление модели игрока 20на20 п.
-    player = pygame.image.load("DigiDuckBook\\goose_game\\image\\player.png").convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
+    player_img = os.path.join(project_root, "image", "player.png")
+    player = pygame.image.load(player_img).convert_alpha()  # =pygame.Surface(player_size)  #модель игрока
     # player.fill(COLOR_BLACK) #цвет игрока
     player_rect = player.get_rect().move(150, (HEIGHT - player_size[0]) / 2)  # обьявление координат player (х,y)
     # player_speed = [1, 1] #координаты игрока
@@ -51,7 +58,8 @@ def main_game() -> None:
         enemy_size = (30, 30)
         enemy = pygame.Surface(enemy_size)  # модель врага
         # enemy.fill(COLOR_BLUE)
-        enemy = pygame.image.load("DigiDuckBook\\goose_game\\image\\enemy.png").convert_alpha()
+        enemi_img = os.path.join(project_root, "image", "enemy.png")
+        enemy = pygame.image.load(enemi_img).convert_alpha()
         enemy_rect = pygame.Rect(
             WIDTH, random.randint(100, HEIGHT - 100), *enemy_size
         )  # спавн
@@ -63,7 +71,8 @@ def main_game() -> None:
         bonus_size = (40, 40)
         bonus = pygame.Surface(bonus_size)
         # bonus.fill(COLOR_GREEN)
-        bonus = pygame.image.load("DigiDuckBook\\goose_game\\image\\bonus.png").convert_alpha()
+        bonus_img = os.path.join(project_root,"image", "bonus.png")
+        bonus = pygame.image.load(bonus_img).convert_alpha()
         bonus_rect = pygame.Rect(random.randint(200, WIDTH - 200), 0, *bonus_size)
         bonus_move = [0, random.randint(3, 8)]
         return [bonus, bonus_rect, bonus_move]
