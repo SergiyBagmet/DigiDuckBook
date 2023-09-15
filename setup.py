@@ -1,12 +1,16 @@
-from setuptools import setup, find_namespace_packages
+from setuptools import setup
 
 setup(
     name='DigiDuckBook',
-    version='0.0.7',
-    # package_data={
-    #     'DigiDuckBook': ['goose_game/image/*']
-    #     },
-    packages=find_namespace_packages(),
+    version='0.0.14',
+    packages=[
+        "DigiDuckBook", 
+        "DigiDuckBook.contacts", 
+        "DigiDuckBook.goose_game", 
+        "DigiDuckBook.note_book", 
+        "DigiDuckBook.sort_folder",
+        "DigiDuckBook.utils",
+        ],
     description='console bot for contacts book, notes and folder sorting by categories',
     url='https://github.com/SergiyBagmet/DigiDuckBook',
     author='Sergey Bagmet',
