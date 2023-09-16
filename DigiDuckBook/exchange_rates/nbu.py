@@ -1,6 +1,6 @@
 import requests
 import typing as t
-
+from tabulate import tabulate
 
 url_nbu_rates_json = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json"
 nbu_response = requests.get(url_nbu_rates_json)
@@ -21,10 +21,16 @@ class NbuExchangeRates:
         
         filter_data_nbu = filter(lambda x: x["cc"] in country_keys, full_data_nbu)
         short_data_nbu = [
-                        {k: v for k, v in full_dict.items() if k in ["txt", "rate", "cc"]} 
+                        {k: v for k, v in full_dict.items() if k in ["txt", "rate", "cc"]} | {"unrate": 1  /  full_dict["rate"] }
                         for full_dict in filter_data_nbu
                         ]
         return short_data_nbu
     
-# grn_nbu = NbuExchangeRates(nbu_json)
-# print(grn_nbu.grn_rate)    
+    def __str__(el: dict[str, str | float]) -> str:
+        return tabulate(grn_nbu.grn_rate, 
+                        headers={"txt":"Country", "cc":"code", "rate":"rate", "unrate": "unrate"} ,
+                        tablefmt='fancy_grid')
+    
+grn_nbu = NbuExchangeRates(nbu_json)
+
+print(grn_nbu)
