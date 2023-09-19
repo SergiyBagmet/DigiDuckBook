@@ -2,6 +2,7 @@ from collections import UserDict
 import typing as t
 import json
 
+from DigiDuckBook.abc_book import AbstractData
 
 class FieldNotes:
     """
@@ -157,7 +158,7 @@ class RecordNote:
             },
         }
 
-class NotesBook(UserDict):
+class NotesBook(UserDict, AbstractData):
     """
     A class representing an notes book, which is a dictionary 
     with note_id as keys and record notes objects as values.
@@ -228,6 +229,9 @@ class NotesBook(UserDict):
     def __str__(self) -> str:
         return '\n'.join([str(r) for r in self.values()])
     
+    def output_all_data(self) -> str:
+        return "\n".join([str(record) for record in self.values()])
+
     def to_dict(self) -> dict:
         """
         Convert the notes book to a dictionary.
@@ -285,15 +289,6 @@ class NotesBook(UserDict):
             if (not counter % note_item_number) or counter == len(self.data):
                 yield list_note_records
                 list_note_records = []
-
-
-class NotesBookEncoder(json.JSONEncoder):
-    #TODO
-    def default(self, obj: NotesBook | RecordNote) -> dict[str, str | list[str]] | t.Any:
-        if isinstance(obj, (NotesBook, RecordNote)):
-            return obj.to_dict()
-        return super().default(obj)
-
 
 if __name__ == "__main__":
     pass

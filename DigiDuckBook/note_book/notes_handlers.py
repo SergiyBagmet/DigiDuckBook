@@ -8,6 +8,7 @@ from DigiDuckBook.utils.data_json import DIR_DATA, get_obj, BookEncoder
 from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
 from DigiDuckBook.utils.cls_clear import clear
 
+
 file_notes_json = Path(DIR_DATA) / "notes_book.json"
 n_book: NotesBook = get_obj(file_notes_json, NotesBook) 
 
@@ -212,7 +213,7 @@ def help_note_handler(*args) -> str:
     )
 
 def show_all_notes(*args) -> str:
-    return "\n".join([str(record_n) for record_n in n_book.values()])
+    return n_book.output_all_data()
 
 
 def start_handler(*args) -> str:

@@ -374,7 +374,7 @@ def help_handler(*args) -> str:
         )
 
 def show_all(*args) -> str:
-    return "\n".join([str(record)[9:] for record in a_book.values()])
+    return a_book.output_all_book()
 
 def hello_handler(*args) -> str:
     return "How can I help you?"
