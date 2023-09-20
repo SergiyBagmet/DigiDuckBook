@@ -1,0 +1,12 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"DigiDuckBook.note_book.notes_oop.FieldNotes" [color="black", fontcolor="black", label=<{FieldNotes|value<br ALIGN="LEFT"/>value : str<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"DigiDuckBook.note_book.notes_oop.NoteBody" [color="black", fontcolor="black", label=<{NoteBody|<br ALIGN="LEFT"/>|value(note_body: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.note_book.notes_oop.NoteTag" [color="black", fontcolor="black", label=<{NoteTag|<br ALIGN="LEFT"/>|value(note_tag: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.note_book.notes_oop.NotesBook" [color="black", fontcolor="black", label=<{NotesBook|<br ALIGN="LEFT"/>|add_note_record(note_record: RecordNote)<br ALIGN="LEFT"/>find_note_record_tag(tag: str): list[RecordNote]<br ALIGN="LEFT"/>from_dict(data_json: dict): None<br ALIGN="LEFT"/>notes_iterator(note_item_number: int): t.Generator[RecordNote, int, None]<br ALIGN="LEFT"/>output_all_data(): str<br ALIGN="LEFT"/>to_dict(): dict<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.note_book.notes_oop.RecordNote" [color="black", fontcolor="black", label=<{RecordNote|counter : int<br ALIGN="LEFT"/>note_body<br ALIGN="LEFT"/>note_id : str<br ALIGN="LEFT"/>note_tags<br ALIGN="LEFT"/>|add_note_tag(note_tag: NoteTag | str)<br ALIGN="LEFT"/>remove_note_tag(note_tag: NoteTag | str): None<br ALIGN="LEFT"/>to_dict(): dict[int, dict[list[str], str]]<br ALIGN="LEFT"/>unic_id(id): int<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.note_book.notes_oop.NoteBody" -> "DigiDuckBook.note_book.notes_oop.FieldNotes" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.note_book.notes_oop.NoteTag" -> "DigiDuckBook.note_book.notes_oop.FieldNotes" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.note_book.notes_oop.NoteBody" -> "DigiDuckBook.note_book.notes_oop.RecordNote" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="note_body", style="solid"];
+}
