@@ -3,6 +3,7 @@ import re
 from datetime import date, timedelta
 import typing as t
 
+from DigiDuckBook.abc_book import AbstractData
 
 class Field:
     """
@@ -354,7 +355,7 @@ class Record:
             },
         }
 
-class AddressBook(UserDict):
+class AddressBook(UserDict, AbstractData):
     """
     A class representing an address book, which is a dictionary
     with record names as keys and record objects as values.
@@ -479,6 +480,9 @@ class AddressBook(UserDict):
     def __str__(self) -> str:
         return "\n".join([str(r) for r in self.values()])
 
+    def output_all_data(self) -> str:
+        return "\n".join([str(record)[9] for record in self.values()])
+    
     def search(self, search_word: str) -> list[Record]:
         """
         Search for records containing the given search word.

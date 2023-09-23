@@ -1,0 +1,24 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"DigiDuckBook.contacts.address_book.Address" [color="black", fontcolor="black", label=<{Address|<br ALIGN="LEFT"/>|value(value: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.AddressBook" [color="black", fontcolor="black", label=<{AddressBook|<br ALIGN="LEFT"/>|add_record(record: Record): None<br ALIGN="LEFT"/>from_dict(data_json: dict): None<br ALIGN="LEFT"/>groups_days_to_bd(input_days: str): list[Record]<br ALIGN="LEFT"/>iterator(item_number: int): t.Generator[Record, int, None]<br ALIGN="LEFT"/>output_all_data(): str<br ALIGN="LEFT"/>search(search_word: str): list[Record]<br ALIGN="LEFT"/>to_dict(): dict<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Birthday" [color="black", fontcolor="black", label=<{Birthday|<br ALIGN="LEFT"/>|get_date(): date<br ALIGN="LEFT"/>value(value: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Email" [color="black", fontcolor="black", label=<{Email|<br ALIGN="LEFT"/>|value(value: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Field" [color="black", fontcolor="black", label=<{Field|value<br ALIGN="LEFT"/>value : str<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Name" [color="black", fontcolor="black", label=<{Name|<br ALIGN="LEFT"/>|value(value: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Phone" [color="black", fontcolor="black", label=<{Phone|<br ALIGN="LEFT"/>|value(value: str): None<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Record" [color="black", fontcolor="black", label=<{Record|address : NoneType<br ALIGN="LEFT"/>birthday : NoneType<br ALIGN="LEFT"/>email : NoneType<br ALIGN="LEFT"/>name<br ALIGN="LEFT"/>phones<br ALIGN="LEFT"/>|add_phone(phone: Phone | str): None<br ALIGN="LEFT"/>change_address(address: Address): None<br ALIGN="LEFT"/>change_birthday(birthday: Birthday): None<br ALIGN="LEFT"/>change_email(email: Email): None<br ALIGN="LEFT"/>change_phone(old_phone: Phone | str, new_phone: Phone | str): None<br ALIGN="LEFT"/>days_to_birthday(): int<br ALIGN="LEFT"/>remove_phone(phone: Phone | str): None<br ALIGN="LEFT"/>to_dict(): dict[str, dict[str, list[str] \| str \| None]]<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"DigiDuckBook.contacts.address_book.Address" -> "DigiDuckBook.contacts.address_book.Field" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.contacts.address_book.Birthday" -> "DigiDuckBook.contacts.address_book.Field" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.contacts.address_book.Email" -> "DigiDuckBook.contacts.address_book.Field" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.contacts.address_book.Name" -> "DigiDuckBook.contacts.address_book.Field" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.contacts.address_book.Phone" -> "DigiDuckBook.contacts.address_book.Field" [arrowhead="empty", arrowtail="none"];
+"DigiDuckBook.contacts.address_book.Address" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="address", style="solid"];
+"DigiDuckBook.contacts.address_book.Address" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="address", style="solid"];
+"DigiDuckBook.contacts.address_book.Birthday" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="birthday", style="solid"];
+"DigiDuckBook.contacts.address_book.Birthday" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="birthday", style="solid"];
+"DigiDuckBook.contacts.address_book.Email" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="email", style="solid"];
+"DigiDuckBook.contacts.address_book.Email" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="email", style="solid"];
+"DigiDuckBook.contacts.address_book.Name" -> "DigiDuckBook.contacts.address_book.Record" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="name", style="solid"];
+}
