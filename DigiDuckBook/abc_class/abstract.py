@@ -1,6 +1,5 @@
 from abc import abstractmethod, ABC
 
-
 class AbstractData(ABC):
 
     @abstractmethod

@@ -4,10 +4,10 @@ from pathlib import Path
 from prompt_toolkit import prompt
 
 
-from DigiDuckBook.contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
-from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
-from DigiDuckBook.utils.data_json import DIR_DATA, get_obj, BookEncoder
-from DigiDuckBook.utils.cls_clear import clear
+from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
+from utils.cls_clear import clear
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 

@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "duck-poetry"
+version = "0.1.0"
+description = ""
+authors = ["SergiyBagmet <134723713+SergiyBagmet@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+prompt-toolkit = "3.0.39"
+pygame = "2.5.1"
+wcwidth = "0.2.6"
+
+[tool.poetry.group.dev.dependencies]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

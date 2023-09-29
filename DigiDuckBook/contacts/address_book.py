@@ -3,7 +3,9 @@ import re
 from datetime import date, timedelta
 import typing as t
 
-from DigiDuckBook.abc_book import AbstractData
+
+from abc_class.abstract import AbstractData
+
 
 class Field:
     """
