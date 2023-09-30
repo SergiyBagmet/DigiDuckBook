@@ -483,7 +483,7 @@ class AddressBook(UserDict, AbstractData):
         return "\n".join([str(r) for r in self.values()])
 
     def output_all_data(self) -> str:
-        return "\n".join([str(record)[9] for record in self.values()])
+        return "\n".join([str(record)[9:] for record in self.values()])
     
     def search(self, search_word: str) -> list[Record]:
         """

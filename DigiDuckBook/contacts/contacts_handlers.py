@@ -374,7 +374,7 @@ def help_handler(*args) -> str:
         )
 
 def show_all(*args) -> str:
-    return a_book.output_all_book()
+    return a_book.output_all_data()
 
 def hello_handler(*args) -> str:
     return "How can I help you?"
