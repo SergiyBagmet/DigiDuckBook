@@ -1,64 +1,31 @@
 from collections import UserDict
 import re
-from datetime import date, timedelta
+from datetime import date
 import typing as t
 
-from DigiDuckBook.abc_book import AbstractData
-
-class Field:
-    """
-    Parent class representing a field used in the record of the address book.
-    """
-
-    def __init__(self, value: str) -> None:
-        self.value = value
-
-    def __valid_value(self, value) -> None:
-        if not isinstance(value, str):
-            raise TypeError(f'Value {value} is not valid. It must be a string')
-        
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value: str, validation: t.Callable | None = None) -> None:
-        self.__valid_value(value)
-        if validation is not None:
-            value = validation(value)
-        self._value = value
-
-    def __str__(self) -> str:
-        return f"{self.value}"
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(value={self.value})"
-
-    def __eq__(self, val):  # ==
-        if isinstance(val, self.__class__):  # можно и через if hasattr(val, 'value'):
-            val = val.value
-        return self.value == val
+from abc_class.abc_book import *
+from calc_date import CalculateDate
 
 
 class Name(Field):
     """
     Class representing the name field in a record of the address book.
     """
-    def __valid_name(self, value) -> str:
+    def _valid_value(self, value) -> str:
         if not (len(value) > 2):
             raise ValueError(f'Name "{value}" is too short!')
         return value
 
     @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
-        Field.value.fset(self, value, self.__valid_name)
+        Field.value.fset(self, value, self._valid_value)
 
 
 class Phone(Field):
     """
     Class representing the phone field in a record of the address book.
     """ 
-    def __valid_phone(self, value) -> str:
+    def _valid_value(self, value) -> str:
         """
         Validate and format a phone number string.
 
@@ -79,7 +46,7 @@ class Phone(Field):
 
     @Field.value.setter  # переопределяем сеттер родительского класса
     def value(self, value: str) -> None:
-        Field.value.fset(self, value, self.__valid_phone)
+        Field.value.fset(self, value, self._valid_value)
 
 
 class Email(Field):
@@ -87,7 +54,7 @@ class Email(Field):
     Class representing the email field in a record of the address book.
     """
 
-    def __valid_email(self, value: str) -> str:
+    def _valid_value(self, value: str) -> str:
         """
         Validate the correct format of email in the input email string.
         Valid format of email: (username)@(domainname).(top-leveldomain).
@@ -106,7 +73,7 @@ class Email(Field):
         
     @Field.value.setter
     def value(self, value: str) -> None:
-        Field.value.fset(self, value, self.__valid_email)
+        Field.value.fset(self, value, self._valid_value)
 
 
 class Birthday(Field):
@@ -115,7 +82,7 @@ class Birthday(Field):
     The date is stored in ISO 8601 format.
     """
 
-    def __valid_date(self, value: str) -> str:
+    def _valid_value(self, value: str) -> str:
         """
         Input date string to a valid ISO-formatted date.
         Args:
@@ -135,7 +102,7 @@ class Birthday(Field):
     
     @Field.value.setter
     def value(self, value: str) -> None:
-        Field.value.fset(self, value, self.__valid_date)
+        Field.value.fset(self, value, self._valid_value)
 
     def get_date(self) -> date:
         return date.fromisoformat(self.value)
@@ -146,7 +113,7 @@ class Address(Field):
     Class representing the address field in a record of the address book.
     """
 
-    def __valid_address(self, value: str) -> str:
+    def _valid_value(self, value: str) -> str:
         """
         Validate the length of address in the input address string.
         Args:
@@ -165,7 +132,8 @@ class Address(Field):
 
     @Field.value.setter
     def value(self, value: str) -> None:
-        Field.value.fset(self, value, self.__valid_address)
+        Field.value.fset(self, value, self._valid_value)
+
 
 
 class Record:
@@ -182,135 +150,69 @@ class Record:
     def __init__(
             self, 
             name: Name | str, 
-            phones: list[Phone] | list[str] = [],
-            email: Email | str | None = None,
+            phones: list[Phone | str],
+            email: Email | str| None = None,
             birthday: Birthday | str | None = None,
             address: Address | str | None = None,
         ) -> None:
 
-        self.name = self._name(name)
-        self.phones = [self._phone(phone) for phone in phones]
-        self.email = None if email is None else self._email(email)
-        self.birthday = None if birthday is None else self._birthday(birthday)
-        self.address = None if address is None else self._address(address)
+        self.name = name
+        self.phones = [phone for phone in phones]
+        self.email = None if email is None else email
+        self.birthday = None if birthday is None else birthday
+        self.address = None if address is None else address
     
+    @property
+    def name(self):
+        return self._name
+    
+    @name.setter
+    def name(self, new_name: Name | str ):
+        if not isinstance(new_name, Name):
+            new_name = Name(new_name)
+        self._name = new_name
         
-    def _name(self, name: str | Name) -> Name:
-        if not isinstance(name, Name):
-            name = Name(name)
-        return name
+    @property
+    def phones(self):
+        return self._phones
 
-    def _phone(self, phone: str | Phone) -> Phone:
-        if not isinstance(phone, Phone):
-            phone = Phone(phone)
-        return phone
-
-    def _email(self, email: str | Email) -> Email:
-        if not isinstance(email, Email):
-            email = Email(email)
-        return email
-
-    def _birthday(self, birthday: str | Birthday) -> Birthday:
-        if not isinstance(birthday, Birthday):
-            birthday = Birthday(birthday)
-        return birthday
-
-    def _address(self, address: str | Address) -> Address:
-        if not isinstance(address, Address):
-            address = Address(address)
-        return address
-
-    def add_phone(self, phone: Phone | str) -> None:
-        """
-        Add a new phone number to the list of phone numbers for the contact.
-        Args:
-            phone (Phone) or try valid Str: The phone number to be added to the contact.
-        Returns:
-            None: This method does not return any value.
-        """
-        if phone in self.phones:
-            raise ValueError("this phone number has already been added")
-
-        phone = self._phone(phone)
-        self.phones.append(phone)
-
-    def remove_phone(self, phone: Phone | str) -> None:
-        """
-        Remove a phone number from the list of phone numbers for the contact.
-
-        Args:
-            phone (Phone) or try valid Str: The phone number to be removed from the contact.
-        Raises:
-            ValueError: If the phone number is not found in the contact's list of phone numbers.
-        Returns:
-            None: This method does not return any value.
-        """
-        phone = self._phone(phone)  # єту строку может после райза?
-        if phone not in self.phones:
-            raise ValueError(f"The phone '{phone}' is not in this record.")
-        self.phones.remove(phone)
-
-    def change_phone(self, old_phone: Phone | str, new_phone: Phone | str) -> None:
-        """
-        Change a phone number in the list of phone numbers for the contact.
-
-        Args:
-            old_phone (Phone)  or try valid Str: The existing phone number to be replaced.
-            new_phone (Phone)  or try valid Str: The new phone number to replace the existing one.
-        Raises:
-            ValueError: If the old phone number is not found in the contact's list of phone numbers.
-            ValueError: If the new phone number is already in contact's list of phone numbers.
-        """
-
-        if (old_phone := self._phone(old_phone)) not in self.phones:
-            raise ValueError(
-                f"The phone '{old_phone}' is not in this record '{self.name}'."
-            )
-        if (new_phone := self._phone(new_phone)) in self.phones:
-            raise ValueError(
-                f"The phone '{new_phone}' already in record '{self.name}'."
-            )
-        inx = self.phones.index(old_phone)
-        self.phones[inx] = new_phone
-
-    def change_email(self, email : Email) -> None:
-        self.email = self._email(email)
-
-
-    def change_birthday(self, birthday: Birthday) -> None:
-        self.birthday = self._birthday(birthday)
-
+    @phones.setter
+    def phones(self, phones: list[Phone | str]):
+        if not all(isinstance(ph, (Phone, str)) for ph in phones):
+            raise ValueError("All elements in 'phones' list must be of type 'Phone' or 'str'.")
+        phones = [Phone(ph) if isinstance(ph, str) else ph for ph in phones] 
+        self._phones = phones
+     
+    @property
+    def email(self):
+        return self._email
+    
+    @email.setter
+    def email(self, new_email: Email | str | None):
+        if not isinstance(new_email, Email) and new_email is not None :
+            new_email = Email(new_email)
+        self._email = new_email
         
-    def days_to_birthday(self) -> int:
-        """
-        Calculate the number of days remaining until the contact's next birthday.
-
-        Returns:
-            int: The number of days remaining until the contact's next birthday.
-        Raises:
-            KeyError: If the contact does not have a birthday set.
-        """
-        if self.birthday == None:
-            raise KeyError(f"No birthday set for the contact {self.name}.")
-
-        today = date.today()
-        try:
-            bday = self.birthday.get_date().replace(
-                year=today.year
-            )  # дата др в этом году
-            if (
-                today > bday
-            ):  # если др уже прошло берем дату следующего(в следующем году)
-                bday = bday.replace(year=today.year + 1)
-            return (bday - today).days
-        except ValueError:  # исключение для високосной дати 1го дня уууу-02-29
-            exept_temp = Record(
-                self.name, [], today.replace(month=2, day=28).isoformat()
-            )
-            return exept_temp.days_to_birthday() + 1
-
-    def change_address(self, address: Address) -> None:
-        self.address = self._address(address)
+    @property
+    def birthday(self):
+        return self._birthday
+    
+    @birthday.setter
+    def birthday(self, new_birthday: Birthday | str | None ):
+        if not isinstance(new_birthday, Birthday) and new_birthday is not None:
+            new_birthday = Birthday(new_birthday)
+        self._birthday = new_birthday
+        
+    @property
+    def address(self):
+        return self._address
+    
+    @address.setter
+    def address(self, new_address: Address | str | None):
+        if not isinstance(new_address, Address) and new_address is not None:
+            new_address = Address(new_address)
+        self._address = new_address            
+        
 
     def __str__(self) -> str:
         # вывод телефонов с новой строки и табуляцией
@@ -327,11 +229,6 @@ class Record:
         )
 
     def __repr__(self) -> str:
-        # __repr__ используется для того что бы показать как создается екземпляр
-        # т.е. если выполнить эту строку в repl python будет создан такой же екземпляр,
-        # конечно, при условии , что все необходимые классы тоже импортированы
-        # repl python
-        # (встроенная в пайтон среда выполенния, которую можно вызвать просто выполнив команду python)
         return (
             f"Record(name={self.name!r}, "
             f'phones=[{", ".join([ph.__repr__() for ph in self.phones])}, '
@@ -355,94 +252,147 @@ class Record:
             },
         }
 
-class AddressBook(UserDict, AbstractData):
+
+
+
+
+class Updaters:
+# класс для удобства вибора вложених классов    
+    class ChangeName(Updater):
+        def __init__(self, new_name: Name | str) -> None:
+            self.new_name = new_name
+        
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.old_name = record.name
+            self.record.name = self.new_name
+        
+        
+        def info(self) -> str:
+            return f'contact name"{self.old_name}" has been changet to "{self.new_name}"'
+
+    class AddPhone(Updater):
+        def __init__(self, phone: Phone | str) -> None:
+            self.phone = phone if isinstance(phone, Phone) else Phone(phone)
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            if self.phone in self.record.phones:
+                raise ValueError("this phone number has already been added")
+            self.record.phones.append(self.phone)
+
+        def info(self) -> str:
+            return f'phone number {self.phone} has added at contact: {self.record.name}'
+
+    class ChangePhone(Updater):
+        def __init__(self, old_phone: Phone | str, new_phone: Phone | str ) -> None:
+            
+            self.old_phone = old_phone if isinstance(old_phone, Phone) else Phone(old_phone)
+            self.new_phone = new_phone if isinstance(new_phone, Phone) else Phone(new_phone)
+            
+        def execute_to(self, record: Record) -> None: 
+            self.record = record 
+            if self.old_phone not in self.record.phones:
+                raise ValueError(
+                    f"The phone '{self.old_phone}' is not in this contact: '{self.record.name}'."
+                )
+            if self.new_phone in self.record.phones:
+                raise ValueError(
+                    f"The phone '{self.new_phone}' already in contact: '{self.record.name}'."
+                )
+            inx = self.record.phones.index(self.old_phone)
+            self.record.phones[inx] = self.new_phone
+        
+        def info(self):
+            return f'phone number {self.old_phone} has changed to {self.new_phone} at contact: {self.record.name}'
+
+    class RemovePhone(Updater):
+        def __init__(self, phone: Phone | str) -> None:
+            self.phone = phone if isinstance(phone, Phone) else Phone(phone)
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            if self.phone not in self.record.phones:
+                raise ValueError(f"The phone '{self.phone}' is not in this record.")
+            self.record.phones.remove(self.phone)
+        
+        def info(self) -> str:
+            return f'phone number {self.phone} has removed at contact: {self.record.name}'
+
+    class AddChangeEmail(Updater):
+        def __init__(self, email: Email | str ) -> None:
+            self.email = email
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.record.email = self.email
+
+        def info(self) -> str:
+            return f'email {self.email} has added/changed at contact: {self.record.name}'    
+
+    class RemoveEmail(Updater):
+         
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.email = self.record.email
+            self.record.email = None
+        
+        def info(self) -> str:
+            return f'email {self.email} has deleted at contact: {self.record.name}'
+        
+    class AddChangeBirthday(Updater):
+        def __init__(self, birthday: Birthday | str) -> None:
+            self.birthday = birthday
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.record.birthday = self.birthday
+
+        def info(self) -> str:
+            return f'birthday {self.birthday} has added/changed at contact: {self.record.name}'    
+
+    class RemoveBirthday(Updater):
+         
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.birthday = self.record.birthday
+            self.record.birthday = None
+        
+        def info(self) -> str:
+            return f'birthday {self.birthday} has deleted at contact: {self.record.name}'
+        
+    class AddChangeAddress(Updater):
+        def __init__(self, address: Address | str ) -> None: 
+            self.address = address
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.record.address = self.address
+
+        def info(self) -> str:
+            return f'address {self.address} has added/changed at contact: {self.record.name}'    
+
+    class RemoveAddress(Updater):
+            
+        def execute_to(self, record: Record) -> None:
+            self.record = record
+            self.address = self.record.address
+            self.record.address = None
+        
+        def info(self) -> str:
+            return f'address {self.address} has deleted at contact: {self.record.name}'    
+
+
+
+
+
+
+
+class AddressBook(UserDict, AbstractBook):
     """
     A class representing an address book, which is a dictionary
     with record names as keys and record objects as values.
     """
-
-    def add_record(self, record: Record) -> None:
-        """
-        Add a record to the address book.
-
-        Args:
-            record (Record): The record object to be added.
-        Raises:
-            TypeError: If the given object is not an instance of the Record class.
-        """
-        self[record.name.value] = record  # отрабативает __setitem__
-
-    def __getitem__(self, key: str) -> Record:
-        """
-        Retrieve a record from the address book by its name.
-
-        Args:
-            key (str): The name of the record to retrieve.
-        Returns:
-            Record: The record object corresponding to the given name.
-        Raises:
-            KeyError: If the provided name is not found in the address book.
-        """
-        record = self.data.get(key)
-        if record is None:
-            raise KeyError(f"This name {key} isn't in Address Book")
-        return record
-
-    def __setitem__(self, key: str, val: Record) -> None:
-        """
-        Add or update a record in the address book.
-
-        Args:
-            key (str): The name of the record.
-            val (Record): The record object to be added or updated.
-        Raises:
-            TypeError: If the given value is not an instance of the Record class.
-            KeyError: If the provided name is already present in the address book.
-        """
-        if not isinstance(val, Record):
-            raise TypeError("Record must be an instance of the Record class.")
-        if key in self.data:
-            raise KeyError(f"This name '{key}' is already in contacts")
-        self.data[key] = val
-
-    def __delaitem__(self, key: str) -> None:
-        """
-        Delete a record from the address book by its name.
-
-        Args:
-            key (str): The name of the record to delete.
-        Raises:
-            KeyError: If the provided name is not found in the address book.
-        """
-        if not isinstance(key, str):
-            raise KeyError("Value must be string")
-        if key not in self.data:
-            raise KeyError(f"Can't delete contact {key} isn't in Address Book")
-        del self.data[key]
-
-    def groups_days_to_bd(self, input_days: str) -> list[Record]:
-        """
-
-        Display list of users which birthday is a given number of days from the current date
-
-        Returns:
-            list of records
-
-        """
-        if not input_days.isdigit():
-            raise ValueError(f"Not valid days {input_days}, please input num")
-        current_date = date.today()
-        time_delta = timedelta(days=int(input_days))
-        last_date = current_date + time_delta
-        list_records = []
-
-        for record in self.data.values():
-            birthday: date = record.birthday.get_date()
-            birthday = birthday.replace(year=current_date.year) 
-
-            if (current_date <= birthday <=last_date):
-                list_records.append(record)
-        return list_records
 
     def to_dict(self) -> dict:
         """
@@ -469,7 +419,7 @@ class AddressBook(UserDict, AbstractData):
             raise TypeError("this is not dict")
 
         for name, record in data_json.items():
-            self.add_record(
+            AddressBookCRUD.create(
                 Record(name=name, 
                        phones=record['phones'], 
                        email=record['email'], 
@@ -478,23 +428,85 @@ class AddressBook(UserDict, AbstractData):
             )
 
     def __str__(self) -> str:
-        return "\n".join([str(r) for r in self.values()])
+        return "\n".join([str(r) for r in self.values()])   
+    
+    def show_all_data(self) -> list[Record]: 
+        #TODO такая штука приемлима?если добавить такое для пагинатора и для остальних
+        # например для др для поиска..реализация через круд а визов тут
+        # вообще тут столько вариантов получить данние шо можно делать отдельний клас Read для круда
+        return AddressBookCRUD.read(self, "all")
+        
+    def group_day_to_bday(self, day: int)-> list[Record]:
+        record_date = {rec: rec.birthday.get_date() 
+                       for rec in filter(lambda r: r.birthday is not None , self.data.values())}  
+        return CalculateDate.find_obj_in_day_interval(record_date, day)
+    
 
-    def output_all_data(self) -> str:
-        return "\n".join([str(record)[9] for record in self.values()])
+    
+                
+                
+
+    
+ 
+class AddressBookCRUD(UserDictCRUD):
+    
+    def __init__(self, a_book: AddressBook) -> None:
+        self.a_book = a_book 
+        self.update_info: str | None = None
+        
+    def create(self, record: Record):
+        if (key := record.name.value) in self.a_book.data or (key in ["all", "page"]):
+            raise KeyError(f"This name '{key}' is already in contacts")
+        self.a_book.data[key] = record
+    
+    def read(self, key: str, page: int=1) -> Record | list[Record] | t.Generator[Record, int, None]:
+        
+        record = self.a_book.data.get(key) # ключ получаем извне(инпут)
+        if record is not None:
+            return record
+        
+        match key: # внутреннее использование ключа в клиент коде
+            case "all":
+                return list(self.a_book.data.values())
+            case "page":
+                return self._paginator(page)
+            case _:
+                raise KeyError(f"This name {key} isn't in Address Book")    
+ 
+    def update(self, key_name: str, updater: Updater) -> str:
+        
+        if (record := self.a_book.data.get(key_name)) is None:
+            raise KeyError(f"This name {key_name} isn't in Address Book")
+        
+        updater.execute_to(record)
+        match updater:
+            case Updaters.ChangeName():
+                self.delete(key_name)
+                self.create(record)
+        self.update_info = updater.info()
+         
+    def delete(self, key_name: str):
+        if key_name not in self.a_book.data:
+            raise KeyError(f"Can't delete contact '{key_name}' isn't in Address Book")
+        del self.a_book.data[key_name]
+    
+    def _paginator(self, item_number: int) -> t.Generator[Record, int, None]:
+        
+        if item_number <= 0:
+            raise ValueError("Item number must be greater than 0.")
+        elif item_number > len(self.a_book.data):  # если количство виводов(за раз) больше чем количество записей
+            item_number = len(self.a_book.data)  # виводим все
+
+        list_record = []
+        for counter, record in enumerate(self.a_book.data.values(), 1):
+            list_record.append(record)
+            if (not counter % item_number) or counter == len(self.a_book.data):
+                yield list_record
+                list_record = []
     
     def search(self, search_word: str) -> list[Record]:
-        """
-        Search for records containing the given search word.
-
-        Args:
-            search_word (str): The word to search in the address book.
-        
-        Returns:
-            list[Record] or []: list with found records.
-        """
         search_list = []
-        for record in self.data.values():
+        for record in self.a_book.values():
             str_val_record = (f'{record.name}' 
                                 f'{" ".join([str(ph)for ph in record.phones])}' 
                                 f'{record.email}'
@@ -503,36 +515,10 @@ class AddressBook(UserDict, AbstractData):
                                 )
             if search_word.lower() in str_val_record.lower():
                 search_list.append(record)
-        return search_list
-
-    def iterator(self, item_number: int) -> t.Generator[Record, int, None]:
-        """
-        Iterate through the records in the address book and yield groups of records.
-
-        Args:
-            item_number (int) > 0: The number of records to be yielded at a time.
-
-        Yields:
-            List[Record]: A list containing a group of records.
-
-        Notes:
-            If the given item_number is greater than the total number of records in the address book,
-            all records will be yielded in one group.
-
-        """
-        if item_number <= 0:
-            raise ValueError("Item number must be greater than 0.")
-        elif item_number > len(
-            self.data
-        ):  # если количство виводов(за раз) больше чем количество записей
-            item_number = len(self.data)  # виводим все
-
-        list_records = []
-        for counter, record in enumerate(self.data.values(), 1):
-            list_records.append(record)
-            if (not counter % item_number) or counter == len(self.data):
-                yield list_records
-                list_records = []
+        return search_list            
+                
 
 if __name__ == "__main__":
     pass
+    
+

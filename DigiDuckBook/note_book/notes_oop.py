@@ -1,8 +1,7 @@
 from collections import UserDict
 import typing as t
-import json
 
-from DigiDuckBook.abc_book import AbstractData
+
 
 class FieldNotes:
     """
@@ -158,7 +157,7 @@ class RecordNote:
             },
         }
 
-class NotesBook(UserDict, AbstractData):
+class NotesBook(UserDict):
     """
     A class representing an notes book, which is a dictionary 
     with note_id as keys and record notes objects as values.

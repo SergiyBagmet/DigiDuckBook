@@ -3,10 +3,10 @@ import re, json
 from pathlib import Path
 from prompt_toolkit import prompt
 
-from DigiDuckBook.note_book.notes_oop import NoteTag, NoteBody, RecordNote, NotesBook
-from DigiDuckBook.utils.data_json import DIR_DATA, get_obj, BookEncoder
-from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
-from DigiDuckBook.utils.cls_clear import clear
+from note_book.notes_oop import NoteTag, NoteBody, RecordNote, NotesBook
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.cls_clear import clear
 
 
 file_notes_json = Path(DIR_DATA) / "notes_book.json"

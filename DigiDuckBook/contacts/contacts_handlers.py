@@ -4,15 +4,17 @@ from pathlib import Path
 from prompt_toolkit import prompt
 
 
-from DigiDuckBook.contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
-from DigiDuckBook.utils.tool_kit import RainbowLexer, get_completer
-from DigiDuckBook.utils.data_json import DIR_DATA, get_obj, BookEncoder
-from DigiDuckBook.utils.cls_clear import clear
+from contacts.address_book import AddressBook, Record, Name, Phone, Email, Birthday, Address
+from contacts.address_book import Updaters, AddressBookCRUD 
+from utils.tool_kit import RainbowLexer, get_completer
+from utils.data_json import DIR_DATA, get_obj, BookEncoder
+from utils.cls_clear import clear
+from calc_date import CalculateDate
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
 a_book: AddressBook  = get_obj(file_json, AddressBook)
-
+a_book_crud = AddressBookCRUD(a_book)
   
 def input_error(func):
     @wraps(func) #для отображения доки/имени
@@ -74,7 +76,7 @@ def add_handler(data: list[str]) -> str:
         raise IndexError
     else :
         record = step_input()
-    a_book.add_record(record)
+    a_book_crud.create(record)
     return f"contact {str(record)[9:]} has been added"
 
 
@@ -129,8 +131,8 @@ def add_handler_phone(data : list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, new_phone, = data
-    a_book[name].add_phone(new_phone)
-    return f"Successful added phone {Phone(new_phone)} to contact {name}"
+    a_book_crud.update(name, Updaters.AddPhone(new_phone))
+    return a_book_crud.update_info()
 
 @input_error
 def change_handler_phone(data: list[str]) -> str:
@@ -145,8 +147,8 @@ def change_handler_phone(data: list[str]) -> str:
     """
     if len(data) <= 2 : raise IndexError
     name, old_phone, new_phone, = data
-    a_book[name].change_phone(old_phone, new_phone)
-    return f"contact {name} has be changed phone to {Phone(new_phone)}"
+    a_book_crud.update(name, Updaters.ChangePhone(old_phone, new_phone))
+    return a_book_crud.update_info()
 
 @input_error
 def del_handler_phone(data: list[str]) -> str:
@@ -161,8 +163,8 @@ def del_handler_phone(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, old_phone, = data
-    a_book[name].remove_phone(old_phone)
-    return f"phone - {Phone(old_phone)} from contact {name} has be deleted"
+    a_book_crud.update(name, Updaters.RemovePhone())
+    return a_book_crud.update_info()
 
 @input_error
 def delete_handler(data: list[str]) -> str:
@@ -177,7 +179,7 @@ def delete_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     name, = data
-    del a_book[name]
+    a_book_crud.delete(name)
     return f"contact {name} has be deleted"
 
 
@@ -194,10 +196,10 @@ def add_handler_email(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, email, = data
-    record = a_book[name]
+    record = a_book_crud.read(name)
     if record.email is not None:
         return f"this contact {name} has already have an email: {record.email}"
-    record.change_email(email)
+    a_book_crud.update(name, Updaters.AddChangeEmail(email))
     return f"contact {name} has got an email: {record.email}"
 
 
@@ -214,7 +216,7 @@ def change_handler_email(data: list[str]) -> str:
     """
     if len(data) <= 1: raise IndexError
     name, email, = data
-    a_book[name].change_email(email)
+    a_book_crud.update(name, Updaters.AddChangeEmail(email))
     return f"contact {name} has new email: {email}"
 
 
@@ -231,10 +233,10 @@ def add_handler_birthday(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, birthday, = data
-    record = a_book[name]
+    record = a_book_crud.read(name)
     if record.birthday is not None:
         return f"this contact {name} has already have a date of birth: {record.birthday}"
-    record.change_birthday(birthday)
+    a_book_crud.update(name, Updaters.AddChangeBirthday(birthday))
     return f"contact {name} is added a date of birth: {record.birthday}"
     
 @input_error
@@ -250,7 +252,7 @@ def change_handler_birthday(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, birthday, = data
-    a_book[name].change_birthday(birthday)
+    a_book_crud.update(name, Updaters.AddChangeBirthday(birthday))
     return f"contact {name} is changed to date of birth: {birthday}"  
 
 @input_error
@@ -266,7 +268,7 @@ def handler_days_to_birthday(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     name, = data
-    days = a_book[name].days_to_birthday() 
+    days = CalculateDate.days_to_birthday(a_book_crud.read(name).birthday)
     return f"{days} days left until {name}'s birthday"  
 
 @input_error
@@ -282,10 +284,10 @@ def add_handler_address(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, address, = data
-    record = a_book[name]
+    record = a_book_crud.read(name)
     if record.address is not None:
         return f"this contact {name} has already have an address: {record.address}"
-    record.change_address(address)
+    a_book_crud.update(name, Updaters.AddChangeAddress(address))
     return f"contact {name} has got an address: {record.address}"
 
 
@@ -302,7 +304,7 @@ def change_handler_address(data: list[str]) -> str:
     """
     if len(data) <= 1: raise IndexError
     name, address, = data
-    a_book[name].change_address(address)
+    a_book_crud.update(name, Updaters.AddChangeAddress(address))
     return f"contact {name} has new address: {address}"
   
 @input_error
@@ -318,12 +320,13 @@ def delta_bday_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     days, = data
-    records = a_book.groups_days_to_bd(days)
+    records = a_book.group_day_to_bday(int(days))
     return "\n".join(map(str, records))
 
 
 @input_error
 def search_handler(data: list[str]) -> str:
+    #TODO
     """
     Search for contacts by a given keyword.
 
@@ -335,7 +338,7 @@ def search_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     search_word, = data
-    res = "\n".join([str(rec)[9:] for rec in a_book.search(search_word)])
+    res = "\n".join([str(rec)[9:] for rec in a_book_crud.search(search_word)])
     if not res:  
         return "not found any contact" # краще any contact was hot found
     return res
@@ -355,7 +358,7 @@ def show_page(data: list[str]) -> str:
     try: 
         count_record = int(count_record)
         yield "input any for next page"
-        for i, page in enumerate(a_book.iterator(count_record), 1):
+        for i, page in enumerate(a_book_crud.read("page", count_record), 1):
             page = "\n".join(map(lambda x: str(x)[9:], page ))
             input("") 
             head = f'{"-" * 15} Page {i} {"-" * 15}\n'
@@ -374,7 +377,7 @@ def help_handler(*args) -> str:
         )
 
 def show_all(*args) -> str:
-    return a_book.output_all_book()
+    return a_book.show_all_data()
 
 def hello_handler(*args) -> str:
     return "How can I help you?"
