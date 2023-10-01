@@ -419,7 +419,8 @@ class AddressBook(UserDict, AbstractBook):
             raise TypeError("this is not dict")
 
         for name, record in data_json.items():
-            AddressBookCRUD.create(
+            a_b_crud = AddressBookCRUD(self)
+            a_b_crud.create(
                 Record(name=name, 
                        phones=record['phones'], 
                        email=record['email'], 
