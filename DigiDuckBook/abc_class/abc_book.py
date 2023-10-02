@@ -80,6 +80,3 @@ class AbstractBook(ABC):
     def from_dict() -> None:
         pass
     
-    @abstractmethod
-    def show_all_data() -> t.Any:
-        pass     

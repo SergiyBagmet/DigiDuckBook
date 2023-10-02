@@ -16,13 +16,15 @@ class CalculateDate:
             else: ValueError
             
     @staticmethod
-    def find_obj_in_day_interval(data: dict[object, date], delta_days: int) -> list[object]:
+    def find_obj_in_day_interval(data: list[object], delta_days: int) -> list[object]:
+        if not all(map(lambda obj:hasattr(obj, "get_date"),data)):
+            raise ValueError("Not all objects have the 'get_date' method")
         current_date = date.today()
         time_delta = timedelta(days=delta_days)
         end_date = current_date + time_delta
         list_obj = []
-        for obj, birthday in data.items():
-            birthday = birthday.replace(year=current_date.year) 
+        for obj in data:
+            birthday: date = obj.get_date().replace(year=current_date.year) 
             if (current_date <= birthday <=end_date):
                 list_obj.append(obj)
         return list_obj

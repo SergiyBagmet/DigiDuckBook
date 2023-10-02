@@ -9,7 +9,7 @@ from contacts.address_book import Updaters, AddressBookCRUD
 from utils.tool_kit import RainbowLexer, get_completer
 from utils.data_json import DIR_DATA, get_obj, BookEncoder
 from utils.cls_clear import clear
-from calc_date import CalculateDate
+
 
 
 file_json  = Path(DIR_DATA) / "address_book.json" 
@@ -102,7 +102,7 @@ def step_input() -> Record: # only for command add
             completer=Completer_in,    # don't work(            
             lexer=RainbowLexer("#0500FF")               
         )
-        if (var_input.strip().lower() in add_pass) \
+        if ((var_input:=var_input.strip()).lower() in add_pass) \
         and (key_class.__name__ not in ["Name", "Phone"]):
             counter += 1
             continue
@@ -163,7 +163,7 @@ def del_handler_phone(data: list[str]) -> str:
     """
     if len(data) <= 1 : raise IndexError
     name, old_phone, = data
-    a_book_crud.update(name, Updaters.RemovePhone())
+    a_book_crud.update(name, Updaters.RemovePhone(old_phone))
     return a_book_crud.update_info()
 
 @input_error
@@ -268,7 +268,7 @@ def handler_days_to_birthday(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     name, = data
-    days = CalculateDate.days_to_birthday(a_book_crud.read(name).birthday)
+    days = a_book_crud.show(key_call="days", arg_for_call=name)
     return f"{days} days left until {name}'s birthday"  
 
 @input_error
@@ -320,8 +320,8 @@ def delta_bday_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     days, = data
-    records = a_book.group_day_to_bday(int(days))
-    return "\n".join(map(str, records))
+    return a_book_crud.show("delta", (int(days)))
+
 
 
 @input_error
@@ -338,7 +338,7 @@ def search_handler(data: list[str]) -> str:
     """
     if len(data) < 1 : raise IndexError
     search_word, = data
-    res = "\n".join([str(rec)[9:] for rec in a_book_crud.search(search_word)])
+    res = a_book_crud.show("search", search_word)
     if not res:  
         return "not found any contact" # краще any contact was hot found
     return res
@@ -358,7 +358,7 @@ def show_page(data: list[str]) -> str:
     try: 
         count_record = int(count_record)
         yield "input any for next page"
-        for i, page in enumerate(a_book_crud.read("page", count_record), 1):
+        for i, page in enumerate(a_book_crud.show("page", count_record), 1):
             page = "\n".join(map(lambda x: str(x)[9:], page ))
             input("") 
             head = f'{"-" * 15} Page {i} {"-" * 15}\n'
@@ -376,8 +376,11 @@ def help_handler(*args) -> str:
         ]
         )
 
+# def show_one(*args) -> str:
+#     return a_book_crud.show("...")
+
 def show_all(*args) -> str:
-    return a_book.show_all_data()
+    return a_book_crud.show("all")
 
 def hello_handler(*args) -> str:
     return "How can I help you?"

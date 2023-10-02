@@ -228,6 +228,15 @@ class Record:
             f'\t{address_str}\n'
         )
 
+    def get_date(self) -> date:
+        if (b_day:= self.birthday) is None:
+            raise ValueError(f"this contact '{self.name} has'nt birthday'")
+        return b_day.get_date()
+    
+    def get_one_str(self) -> str:
+        str_phones = " ".join(map(str, self.phones))
+        return f'{self.name} {str_phones} {self.email} {self.birthday} {self.address}'.replace("None", "")
+
     def __repr__(self) -> str:
         return (
             f"Record(name={self.name!r}, "
@@ -251,9 +260,6 @@ class Record:
                 "address": address,
             },
         }
-
-
-
 
 
 class Updaters:
@@ -383,11 +389,6 @@ class Updaters:
             return f'address {self.address} has deleted at contact: {self.record.name}'    
 
 
-
-
-
-
-
 class AddressBook(UserDict, AbstractBook):
     """
     A class representing an address book, which is a dictionary
@@ -419,35 +420,19 @@ class AddressBook(UserDict, AbstractBook):
             raise TypeError("this is not dict")
 
         for name, record in data_json.items():
-            a_b_crud = AddressBookCRUD(self)
-            a_b_crud.create(
+            AddressBookCRUD(self).create( # тут єто нормально? или по другому?
                 Record(name=name, 
                        phones=record['phones'], 
                        email=record['email'], 
                        birthday=record['birthday'],
                        address=record['address']),
-            )
+            ) #TODO сделать фромдикт в рекорде если добавляем новое поле там же и добавляем в методе?
 
     def __str__(self) -> str:
-        return "\n".join([str(r) for r in self.values()])   
+        return "\n".join([str(r) for r in self.values()])
     
-    def show_all_data(self) -> list[Record]: 
-        #TODO такая штука приемлима?если добавить такое для пагинатора и для остальних
-        # например для др для поиска..реализация через круд а визов тут
-        # вообще тут столько вариантов получить данние шо можно делать отдельний клас Read для круда
-        return AddressBookCRUD.read(self, "all")
-        
-    def group_day_to_bday(self, day: int)-> list[Record]:
-        record_date = {rec: rec.birthday.get_date() 
-                       for rec in filter(lambda r: r.birthday is not None , self.data.values())}  
-        return CalculateDate.find_obj_in_day_interval(record_date, day)
-    
-
-    
-                
-                
-
-    
+    def get_dict_search(self) -> dict[str, Record]:
+        return {r.get_one_str():r for r in self.data.values()}
  
 class AddressBookCRUD(UserDictCRUD):
     
@@ -456,24 +441,17 @@ class AddressBookCRUD(UserDictCRUD):
         self.update_info: str | None = None
         
     def create(self, record: Record):
-        if (key := record.name.value) in self.a_book.data or (key in ["all", "page"]):
-            raise KeyError(f"This name '{key}' is already in contacts")
-        self.a_book.data[key] = record
+        if (key_name := record.name.value) in self.a_book.data:
+            raise KeyError(f"This name '{key_name}' is already in contacts")
+        self.a_book.data[key_name] = record
     
-    def read(self, key: str, page: int=1) -> Record | list[Record] | t.Generator[Record, int, None]:
-        
-        record = self.a_book.data.get(key) # ключ получаем извне(инпут)
-        if record is not None:
-            return record
-        
-        match key: # внутреннее использование ключа в клиент коде
-            case "all":
-                return list(self.a_book.data.values())
-            case "page":
-                return self._paginator(page)
-            case _:
-                raise KeyError(f"This name {key} isn't in Address Book")    
- 
+    def read(self, key_name: str) -> Record :
+        # | list[Record] | t.Generator[Record, int, None]
+        record = self.a_book.data.get(key_name) # ключ получаем извне(инпут)
+        if record is None:
+            raise KeyError(f"This name '{key_name}' isn't in Address Book")  
+        return record
+                  
     def update(self, key_name: str, updater: Updater) -> str:
         
         if (record := self.a_book.data.get(key_name)) is None:
@@ -491,8 +469,35 @@ class AddressBookCRUD(UserDictCRUD):
             raise KeyError(f"Can't delete contact '{key_name}' isn't in Address Book")
         del self.a_book.data[key_name]
     
-    def _paginator(self, item_number: int) -> t.Generator[Record, int, None]:
+    def show(self, 
+             key_call: t.Literal["all", "page", "search", "days", "delta"], 
+             arg_for_call: str | int=None
+             ) -> str | t.Generator[Record, int, None]:
         
+        show_ab = ShowAddressBook(self.a_book)
+        match key_call:
+            case "all":
+                return "\n".join(map(lambda r: str(r)[9:], show_ab.show_all()))
+            case "page":
+                return show_ab.paginator(arg_for_call)
+            case "search":
+                return "\n".join(map(lambda r: str(r)[9:], show_ab.search(arg_for_call)))
+            case "days":
+                return str(CalculateDate.days_to_birthday(self.read(arg_for_call).get_date()))
+            case "delta":
+                rec_list = CalculateDate.find_obj_in_day_interval(list(self.a_book.values()), arg_for_call)
+                return "\n".join(map(lambda r: str(r)[9:], rec_list))
+                    
+
+class ShowAddressBook:
+    def __init__(self, a_book: AddressBook) -> None:
+        self.a_book = a_book
+    
+    def show_all(self) -> list[Record]:
+        return list(self.a_book.data.values())
+     
+    def paginator(self, item_number: int) -> t.Generator[Record, int, None]:
+
         if item_number <= 0:
             raise ValueError("Item number must be greater than 0.")
         elif item_number > len(self.a_book.data):  # если количство виводов(за раз) больше чем количество записей
@@ -504,16 +509,10 @@ class AddressBookCRUD(UserDictCRUD):
             if (not counter % item_number) or counter == len(self.a_book.data):
                 yield list_record
                 list_record = []
-    
+
     def search(self, search_word: str) -> list[Record]:
         search_list = []
-        for record in self.a_book.values():
-            str_val_record = (f'{record.name}' 
-                                f'{" ".join([str(ph)for ph in record.phones])}' 
-                                f'{record.email}'
-                                f'{record.birthday}'
-                                f'{record.address}'
-                                )
+        for str_val_record, record in self.a_book.get_dict_search().items():
             if search_word.lower() in str_val_record.lower():
                 search_list.append(record)
         return search_list            
