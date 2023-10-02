@@ -37,9 +37,22 @@ class Field(ABC):
         return self.value == val
     
 
-# class Record(ABC): 
-# TODO сделать абстрактную запись(Record) 
-# переименовать класс рекорд в рекорд_аб или подобний по смислу
+class AbstractRecord(ABC): 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        pass
+    
+    # @abstractmethod
+    # def from_dict() -> None:
+    #     pass
+    
+    @abstractmethod
+    def get_one_str(self) -> dict:
+        pass
+    
+    @abstractmethod
+    def get_date(self):
+        pass
 
    
 class Updater(ABC):
@@ -52,24 +65,7 @@ class Updater(ABC):
     def info(self):
         pass
      
-class UserDictCRUD(ABC):
-      
-    @abstractmethod
-    def create(self, record: object):
-        pass
-    
-    @abstractmethod
-    def read(self, key: str):
-        pass
-    
-    @abstractmethod
-    def update(self, key: str, updater: Updater):
-        pass
-    
-    @abstractmethod
-    def delete(self, key: str):
-        pass    
-    
+ 
 class AbstractBook(ABC):
     
     @abstractmethod
@@ -80,3 +76,24 @@ class AbstractBook(ABC):
     def from_dict() -> None:
         pass
     
+    @abstractmethod
+    def get_dict_search(self) -> dict:
+        pass
+ 
+class UserDictCRUD(ABC):
+    
+    @abstractmethod
+    def create(self, record: object):
+        pass
+
+    @abstractmethod
+    def read(self, key: str):
+        pass
+
+    @abstractmethod
+    def update(self, key: str, updater: Updater):
+        pass
+
+    @abstractmethod
+    def delete(self, key: str):
+        pass       

@@ -136,7 +136,7 @@ class Address(Field):
 
 
 
-class Record:
+class Record(AbstractRecord):
     """
     Class representing a record in an address book.
 
@@ -446,8 +446,7 @@ class AddressBookCRUD(UserDictCRUD):
         self.a_book.data[key_name] = record
     
     def read(self, key_name: str) -> Record :
-        # | list[Record] | t.Generator[Record, int, None]
-        record = self.a_book.data.get(key_name) # ключ получаем извне(инпут)
+        record = self.a_book.data.get(key_name) 
         if record is None:
             raise KeyError(f"This name '{key_name}' isn't in Address Book")  
         return record
@@ -487,6 +486,8 @@ class AddressBookCRUD(UserDictCRUD):
             case "delta":
                 rec_list = CalculateDate.find_obj_in_day_interval(list(self.a_book.values()), arg_for_call)
                 return "\n".join(map(lambda r: str(r)[9:], rec_list))
+            case _:
+                raise KeyError(f'Invalid key: {key_call}. Expected one of ["all", "page", "search", "days", "delta"]')
                     
 
 class ShowAddressBook:
